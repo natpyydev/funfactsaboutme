@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>natnat's hidden corner 🎀</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-content">
+    <h1 class="logo">nat.exe</h1>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+  </div>
+</div>
+<audio id="sfxType" src="type.mp3" preload="auto"></audio>
+
+<audio id="bgMusic" muted loop>
+  <source src="Cozy%20Clicks.mp3" type="audio/mpeg">
+</audio>
+
+<div class="bg"></div>
+
+<header>
+  <div class="header-badge">✨ welcome to my world 😈✨</div>
+  <h1>hi, i'm <span>Natnat</span> 🎀</h1>
+  <p class="subtitle">click around, have fun, and don't be a stranger! 👀</p>
+  <div class="deco-row">
+    <span class="bounce" style="animation-delay:0s">🌸</span>
+    <span class="bounce" style="animation-delay:0.2s">💗</span>
+    <span class="bounce" style="animation-delay:0.4s">🌷</span>
+    <span class="bounce" style="animation-delay:0.6s">🍓</span>
+    <span class="bounce" style="animation-delay:0.8s">🎀</span>
+  </div>
+
+  <!-- #1 GitHub Buttons -->
+  <div class="github-btn-row">
+    <a class="github-button" href="https://github.com/nieytan"
+       data-color-scheme="no-preference: dark_high_contrast; light: light; dark: dark;"
+       data-size="large" aria-label="Follow @nieytan on GitHub">Follow @nieytan</a>
+    <a class="github-button" href="https://github.com/nieytan/funfactsaboutme"
+       data-color-scheme="no-preference: dark_high_contrast; light: light; dark: dark;"
+       data-icon="octicon-star" data-size="large"
+       aria-label="Star nieytan/funfactsaboutme on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/nieytan/funfactsaboutme/issues"
+       data-color-scheme="no-preference: dark_high_contrast; light: light; dark: dark;"
+       data-icon="octicon-issue-opened" data-size="large"
+       aria-label="Issue nieytan/funfactsaboutme on GitHub">Issue</a>
+  </div>
+
+  <!-- #2 Social Media -->
+  <div class="socmed-row">
+    <a class="socmed-btn fb" href="https://www.facebook.com/nathan2wild" target="_blank" title="Facebook">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+    </a>
+    <a class="socmed-btn ig" href="https://www.instagram.com/nhyieuw" target="_blank" title="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a class="socmed-btn tt" href="https://www.tiktok.com/@02838207392938344779025k" target="_blank" title="TikTok">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+    </a>
+    <a class="socmed-btn gh" href="https://github.com/nieytan" target="_blank" title="GitHub">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+    </a>
+    <a class="socmed-btn dc" href="https://discord.com/1132595804721397791" target="_blank" title="Discord">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <!-- #8 Fun Facts — redesigned reveal cards -->
+  <section class="facts-section">
+    <h2 class="section-title">🌷 fun facts about me</h2>
+    <p class="section-sub">tap a card to flip · 4 little secrets ✨</p>
+    <div class="facts-grid">
+      <button class="fact-card-v2" type="button" style="--fc-1:#ff7eb6;--fc-2:#c47bff" onclick="this.classList.toggle('flipped')">
+        <span class="fc-front">
+          <span class="fc-num">01</span>
+          <span class="fc-tag">tap me 👀</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">I hate people na hindi sinasagutan yung link na 'to 😒 (yes, ikaw 'yan)</span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#ffb38a;--fc-2:#ff7eb6" onclick="this.classList.toggle('flipped')">
+        <span class="fc-front">
+          <span class="fc-num">02</span>
+          <span class="fc-tag">tap me 💗</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">very cute, understanding, handsome, caring, lovable student 🥺✨</span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#7ee7c1;--fc-2:#7ec8ff" onclick="this.classList.toggle('flipped')">
+        <span class="fc-front">
+          <span class="fc-num">03</span>
+          <span class="fc-tag">tap me 💅</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">good at almost everything (lah) 💅</span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#c79bff;--fc-2:#ff9bcb" onclick="this.classList.toggle('flipped')">
+        <span class="fc-front">
+          <span class="fc-num">04</span>
+          <span class="fc-tag">tap me 🤔</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">ano pa ba? um ewan 🤷</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- #4 Photo Gallery — Stack style -->
+  <section class="gallery-section">
+    <h2 class="section-title">📷 photos · swipe to react</h2>
+    <div class="stack-gallery" id="stackGallery"></div>
+    <p class="gallery-hint">✨ swipe (or drag) through the photos · last one is special 👀</p>
+  </section>
+
+  <!-- Rate Me -->
+  <section class="react-section">
+    <div class="react-card">
+      <h2 class="react-title">💅 rate po :></h2>
+      <p class="react-sub">after mong tiisin yung lahat ng 'to, ano na feel mo? 😭</p>
+      <div class="react-buttons">
+        <button class="big-reaction-btn" onclick="bigReact(this,'🙀 lAaH',0)"><span class="emoji">😍</span><span class="label">Obsessed</span><span class="cnt" id="cnt-0">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'😭 Jijemon tlgA',1)"><span class="emoji">😭</span><span class="label">Di ko kaya</span><span class="cnt" id="cnt-1">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'💅 Slay hehe',2)"><span class="emoji">💅</span><span class="label">Slay</span><span class="cnt" id="cnt-2">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'🥺 ofc',3)"><span class="emoji">🥺</span><span class="label">Ang cute</span><span class="cnt" id="cnt-3">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'😆 ano toh lol',4)"><span class="emoji">😆</span><span class="label">Lol</span><span class="cnt" id="cnt-4">0</span></button>
+      </div>
+    </div>
+  </section>
+
+<!-- 🚗 SERVICES -->
+<section class="services-section">
+  <h2 class="section-title">🚗 services & offers</h2>
+
+  <div class="services-grid">
+
+    <!-- DRIVING -->
+    <div class="service-card">
+      <h3>Driving Lesson</h3>
+
+      <!-- 🚲 Bike -->
+      <div class="service-row" data-id="bike">
+        <span>🚲 Bike — ₱100</span>
+        <div class="service-actions">
+          <button onclick="rateService('bike', this)">⭐ <span id="star-bike">0</span></button>
+          <button onclick="heartService('bike', this)">❤️ <span id="heart-bike">0</span></button>
+          <button class="service-btn" onclick="book('Bike lesson')">Book</button>
+        </div>
+      </div>
+
+      <!-- 🛵 E-bike -->
+      <div class="service-row" data-id="ebike">
+        <span>🛵 E-bike — ₱200</span>
+        <div class="service-actions">
+          <button onclick="rateService('ebike', this)">⭐ <span id="star-ebike">0</span></button>
+          <button onclick="heartService('ebike', this)">❤️ <span id="heart-ebike">0</span></button>
+          <button class="service-btn" onclick="book('E-bike lesson')">Book</button>
+        </div>
+      </div>
+
+      <!-- 🏍 Motor Auto -->
+      <div class="service-row" data-id="motor-auto">
+        <span>🏍 Motor (Automatic)</span>
+        <div class="service-actions">
+          <button onclick="rateService('motor-auto', this)">⭐ <span id="star-motor-auto">0</span></button>
+          <button onclick="heartService('motor-auto', this)">❤️ <span id="heart-motor-auto">0</span></button>
+          <button class="service-btn" onclick="book('Motor Automatic lesson')">Teach me</button>
+        </div>
+      </div>
+
+      <!-- 🏍 Motor Manual -->
+      <div class="service-row" data-id="motor-manual">
+        <span>🏍 Motor (Manual)</span>
+        <div class="service-actions">
+          <button onclick="rateService('motor-manual', this)">⭐ <span id="star-motor-manual">0</span></button>
+          <button onclick="heartService('motor-manual', this)">❤️ <span id="heart-motor-manual">0</span></button>
+          <button class="service-btn" onclick="book('Motor Manual lesson')">Teach me</button>
+        </div>
+      </div>
+
+      <!-- 🚗 Car Auto -->
+      <div class="service-row" data-id="car-auto">
+        <span>🚗 Car (Automatic)</span>
+        <div class="service-actions">
+          <button onclick="rateService('car-auto', this)">⭐ <span id="star-car-auto">0</span></button>
+          <button onclick="heartService('car-auto', this)">❤️ <span id="heart-car-auto">0</span></button>
+          <button class="service-btn" onclick="book('Car Automatic lesson')">Teach me</button>
+        </div>
+      </div>
+
+      <!-- 🚗 Car Manual -->
+      <div class="service-row" data-id="car-manual">
+        <span>🚗 Car (Manual)</span>
+        <div class="service-actions">
+          <button onclick="rateService('car-manual', this)">⭐ <span id="star-car-manual">0</span></button>
+          <button onclick="heartService('car-manual', this)">❤️ <span id="heart-car-manual">0</span></button>
+          <button class="service-btn" onclick="book('Car Manual lesson')">Teach me</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 💞 SPECIAL -->
+    <div class="service-card">
+      <h3>💞 Special Offers</h3>
+
+      <div class="service-row" data-id="friend">
+        <span>🤝 Be my friend — ₱1,000</span>
+        <div class="service-actions">
+          <button onclick="rateService('friend', this)">⭐ <span id="star-friend">0</span></button>
+          <button onclick="heartService('friend', this)">❤️ <span id="heart-friend">0</span></button>
+          <button class="service-btn" onclick="book('Friend application')">Apply</button>
+        </div>
+      </div>
+
+      <div class="service-row" data-id="bestfriend">
+        <span>💗 Bestfriend — ₱5,000</span>
+        <div class="service-actions">
+          <button onclick="rateService('bestfriend', this)">⭐ <span id="star-bestfriend">0</span></button>
+          <button onclick="heartService('bestfriend', this)">❤️ <span id="heart-bestfriend">0</span></button>
+          <button class="service-btn" onclick="book('Bestfriend application')">Apply</button>
+        </div>
+      </div>
+
+      <div class="service-row" data-id="gfbf">
+        <span>💘 GF/BF — ₱10,000 (Unavailable)</span>
+        <div class="service-actions">
+          <button onclick="rateService('gfbf', this)">⭐ <span id="star-gfbf">0</span></button>
+          <button onclick="heartService('gfbf', this)">❤️ <span id="heart-gfbf">0</span></button>
+         <button class="service-btn disabled">Unavailable</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- 🎮🤖🔐 FLOATING LAUNCHERS -->
+<div class="nat-launchers">
+  <button class="nat-launcher" title="Play Mini-Game" onclick="openNatGame()">🎮</button>
+  <button class="nat-launcher" title="Chat with AI Nat" onclick="openNatChat()">🤖</button>
+  <button class="nat-launcher nat-launcher-tiny" title="Role Login" onclick="openRoleLogin()">🔐</button>
+  <span id="roleBadgeMount"></span>
+</div>
+
+<!-- 🔐 ROLE LOGIN MODAL -->
+<div id="roleLoginOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeRoleLogin()">
+  <div class="nat-modal nat-modal-sm">
+    <button class="nat-x" onclick="closeRoleLogin()">×</button>
+    <h3>🔐 Role Login</h3>
+    <p style="opacity:.7;font-size:13px;margin:0 0 12px">enter your role passcode</p>
+    <input id="roleLoginInput" type="password" placeholder="passcode…"
+           onkeydown="if(event.key==='Enter')tryRoleSubmit()" />
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="tryRoleSubmit()" class="nat-btn-pri">unlock</button>
+      <button onclick="logoutRole()"   class="nat-btn-sec">logout</button>
+    </div>
+    <div id="roleLoginStatus" style="margin-top:10px;font-size:13px;min-height:18px"></div>
+  </div>
+</div>
+
+<!-- 🎮 GAME MODAL -->
+<div id="gameOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeGame()">
+  <div class="nat-modal nat-modal-game">
+    <button class="nat-x" onclick="closeGame()">×</button>
+    <div id="gameCharSelect"></div>
+    <div id="gameStage" class="hidden">
+      <canvas id="gameCanvas" width="360" height="540"></canvas>
+    </div>
+    <div class="game-help">arrow keys / drag to move · catch ⭐❤️ · dodge 💀😡</div>
+  </div>
+</div>
+
+<!-- 🤖 CHAT-NAT MODAL -->
+<div id="chatNatOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeChat()">
+  <div class="nat-modal nat-modal-chat">
+    <button class="nat-x" onclick="closeChat()">×</button>
+    <div class="cn-head">
+      <div class="cn-avatar">🤖</div>
+      <div>
+        <div class="cn-name">AI Nat</div>
+        <div class="cn-status">replica · always online ✨</div>
+      </div>
+      <button class="cn-clear" onclick="clearChatHistory()" title="clear chat">🗑</button>
+    </div>
+    <div id="chatNatList" class="cn-list"></div>
+    <div class="cn-input">
+      <input id="chatNatInput" placeholder="say something to AI nat…"
+             onkeydown="if(event.key==='Enter')sendChatNat()" />
+      <button onclick="sendChatNat()">▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🏆 LEADERBOARD -->
+<section class="leaderboard-section">
+  <div class="leaderboard">
+    <h3>🏆 Leaderboard <span id="lbSortLabel" style="opacity:.6;font-weight:600;font-size:13px">— Best Overall</span></h3>
+    <div class="lb-sort-tabs">
+      <button class="lb-sort-btn active" data-sort="overall" onclick="setLeaderboardSort('overall')">🏆 Best Overall</button>
+      <button class="lb-sort-btn" data-sort="combos" onclick="setLeaderboardSort('combos')">🎖 Highest Combos</button>
+      <button class="lb-sort-btn" data-sort="game" onclick="setLeaderboardSort('game')">🎮 Highest Game Points</button>
+      <button class="lb-sort-btn" data-sort="stars" onclick="setLeaderboardSort('stars')">⭐ Most Stars</button>
+      <button class="lb-sort-btn" data-sort="hearts" onclick="setLeaderboardSort('hearts')">❤️ Most Hearts</button>
+    </div>
+    <div id="leaderboardList">
+      <p class="loading-text" style="text-align:center;opacity:.6">walang nag-iiwan ng message pa… 👀</p>
+    </div>
+    <div id="myComboPanel"></div>
+  </div>
+</section>
+
+  <!-- #6 Hobbies -->
+  <section class="hobbies-section">
+    <h2 class="section-title">🎨 hobbies & interests</h2>
+    <div class="hobbies-grid">
+      <div class="hobby-card">
+        <div class="hobby-img-wrap">
+          <img src="hobby_photo.jpg" alt="Photography" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">📷</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Photography</div>
+          <div class="hobby-desc">Capturing moments & aesthetic shots 🌅</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">📸 Photoshoot ₱300</span>
+            <span class="hobby-price-tag">🎨 Edit ₱500</span>
+          </div>
+          <a class="service-btn" href="https://github.com/nieytan/funfactsaboutme/issues/new?title=Photography+Request" target="_blank">Book 📋</a>
+        </div>
+      </div>
+      <div class="hobby-card">
+        <div class="hobby-img-wrap"><div class="hobby-placeholder">💻</div></div>
+        <div class="hobby-body">
+          <div class="hobby-name">Web Dev</div>
+          <div class="hobby-desc">Making cool things on the internet (like this site lol 😆)</div>
+        </div>
+      </div>
+      <div class="hobby-card" onclick="openFavorites()">
+        <div class="hobby-img-wrap"><div class="hobby-placeholder">🎬</div></div>
+        <div class="hobby-body">
+          <div class="hobby-name">My Interests</div>
+          <div class="hobby-desc">tap to explore 👀</div>
+        </div>
+      </div>
+
+      <!-- ── 6 NEW HOBBIES with sample-photo slots ── -->
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_badminton.jpg" alt="Badminton" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🏸</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Badminton</div>
+          <div class="hobby-desc">smashing it on weekends 🏸</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_badminton1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_badminton2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_badminton3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_chess.jpg" alt="Chess" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">♟️</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Chess</div>
+          <div class="hobby-desc">checkmate in 4 if you let me 😏</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_chess1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_chess2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_chess3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_digiart.jpg" alt="Digital Arts" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎨</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Digital Arts</div>
+          <div class="hobby-desc">drawing pretty things on a screen ✨</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_digiart1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_digiart2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="sample_digiart3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_cinema.jpg" alt="Cinematographer" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎬</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Cinematographer</div>
+          <div class="hobby-desc">framing every shot like it's an A24 trailer 🎬</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_cinema1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+            <div class="sample-slot"><img src="sample_cinema2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+            <div class="sample-slot"><img src="sample_cinema3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_video.jpg" alt="Videographer" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">📹</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Videographer</div>
+          <div class="hobby-desc">events, vlogs, b-roll, you name it 📹</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_video1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+            <div class="sample-slot"><img src="sample_video2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+            <div class="sample-slot"><img src="sample_video3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hobby-card hobby-rich">
+        <div class="hobby-img-wrap">
+          <img src="hobby_editor.jpg" alt="Photo / Video Editor" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">✂️</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Photo / Video Editor</div>
+          <div class="hobby-desc">turning raws into ✨magic✨ in post</div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="sample_edit1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+            <div class="sample-slot"><img src="sample_edit2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+            <div class="sample-slot"><img src="sample_edit3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- #7 Premium Photos -->
+  <section class="premium-section">
+    <h2 class="section-title">💎 premium photos</h2>
+    <div class="premium-card premium-crazy" onclick="showPremiumReveal()">
+      <div class="premium-lock-icon">🔒</div>
+      <div class="premium-title">Premium Photos</div>
+      <div class="premium-price">₱2,000</div>
+      <div class="premium-sub">exclusive premium content inside</div>
+      <button class="premium-btn">Unlock Now 💳</button>
+    </div>
+  </section>
+
+  <!-- Messages -->
+  <section class="message-section">
+    <h2 class="section-title">💌 mag-iwan ng message</h2>
+    <div class="msg-card">
+      <textarea id="msgInput" rows="3" placeholder="type something nice… or hindi 😒"></textarea>
+      <div class="name-toggle-row">
+        <label class="anon-label">
+          <input type="checkbox" id="anonToggle" checked>
+          <span>Stay anonymous</span>
+        </label>
+        <div id="nameField" style="display:none;">
+          <input type="text" id="msgName" placeholder="your name..." class="name-input" maxlength="30">
+        </div>
+      </div>
+     <button id="sendBtn" class="send-btn" onclick="sendMessage()">send it 🎀</button>
+      <div class="msg-sort-row">
+        <button class="sort-btn active" data-sort="date" onclick="setSortMode('date')">🕐 Latest</button>
+        <button class="sort-btn" data-sort="upvotes" onclick="setSortMode('upvotes')">▲ Top</button>
+        <button class="rate-site-btn" onclick="showRateSite()">⭐ Rate Site</button>
+      </div>
+      <div class="messages-list" id="messagesList">
+        <p class="loading-text">loading messages... 🌸</p>
+      </div>
+      <button class="see-more-btn" id="seeMoreBtn" onclick="loadMore()" style="display:none;">see more 👀</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  made with 💗 for my friEnds · don't lurk, react! 🌸
+  <div class="footer-github-row">
+    <a class="github-button" href="https://github.com/nieytan/funfactsaboutme"
+       data-color-scheme="no-preference: dark_high_contrast; light: light; dark: dark;"
+       data-icon="octicon-star" data-size="large"
+       aria-label="Star nieytan/funfactsaboutme on GitHub">Star</a>
+  </div>
+</footer>
+
+<!-- Popups -->
+<div id="gifPopupOverlay" class="gif-popup-overlay">
+  <div class="gif-popup-box">
+    <div id="gifPopupEmoji" class="gif-popup-emoji"></div>
+    <img id="gifPopupImg" class="gif-popup-img" src="" alt="">
+    <div id="gifPopupBadge"></div>
+  </div>
+</div>
+
+<div id="rateSiteModal" class="rate-modal-overlay" onclick="closeRateSite()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div class="rate-modal-title">⭐ Rate this site!</div>
+    <p class="rate-modal-sub">4+ stars opens the GitHub repo so you can leave a star 🌟</p>
+    <div class="star-row">
+      <button class="star-btn" onclick="submitStarRating(1)">★</button>
+      <button class="star-btn" onclick="submitStarRating(2)">★</button>
+      <button class="star-btn" onclick="submitStarRating(3)">★</button>
+      <button class="star-btn" onclick="submitStarRating(4)">★</button>
+      <button class="star-btn" onclick="submitStarRating(5)">★</button>
+    </div>
+    <button class="rate-close-btn" onclick="closeRateSite()">maybe later 🥺</button>
+  </div>
+</div>
+
+<div id="premiumModal" class="rate-modal-overlay" onclick="closePremiumReveal()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div style="font-size:3rem;margin-bottom:8px">😭</div>
+    <div class="rate-modal-title">hehe</div>
+    <p class="rate-modal-sub">there are no premium photos<br>congrats naloko kita 💅</p>
+    <button class="rate-close-btn" onclick="closePremiumReveal()">okay fine 😭</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showLockedToast(){
+  const t=document.getElementById('toast');
+  t.textContent='🔒 ₱200 lang! dm me hehe';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function showPremiumReveal(){document.getElementById('premiumModal').classList.add('active');}
+function closePremiumReveal(){document.getElementById('premiumModal').classList.remove('active');}
+
+function openGF() {
+  alert("🚫 unavailable pa 😭");
+}
+
+</script>
+<script type="module" src="app.js"></script>
+<script defer src="countdown.js"></script>
+<script defer src="seasonal.js"></script>
+<script defer src="music.js"></script>
+<script defer src="quiz.js"></script>
+<script defer src="challenges.js"></script>
+<script defer src="easter.js"></script>
+<script defer src="photowall.js"></script>
+<script defer src="worldmap.js"></script>
+<script defer src="guestbook.js"></script>
+<script defer src="levels.js"></script>
+<script defer src="profile.js"></script>
+<script defer src="vip.js"></script>
+<script defer src="quests.js"></script>
+<script defer src="tabs.js"></script>
+<div id="chibiWrap">
+  <video 
+  id="chibi" 
+  muted 
+  autoplay 
+  playsinline 
+  loop
+></video>
+  <div id="chibiBubble"></div>
+</div>
+<div id="deleteConfirm" class="confirm-popup hidden">
+  <div class="confirm-box">
+    <p>sure na to delete this message? 🗑️</p>
+    <div class="confirm-actions">
+      <button id="confirmYes">Yes</button>
+      <button id="confirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="favoritesModal" class="rate-modal-overlay" onclick="closeFavorites()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div class="rate-modal-title">🎬 my favorites</div>
+
+ <div class="favorites-slider" id="favSlider">
+  
+  <!-- KDRAMA -->
+<div class="fav-slide" style="background-image:url('kdrama.jpg?test=1')">
+    <div class="fav-overlay">
+      <h3>🇰🇷 Kdrama</h3>
+      <p>1. Undercover High School</p>
+      <p>2. Midnight</p>
+      <p>3. The Bad Guys</p>
+    </div>
+  </div>
+  
+  <!-- CDRAMA -->
+  <div class="fav-slide" style="background-image:url('donghua.jpg')">
+    <div class="fav-overlay">
+      <h3>🇨🇳 Donghua</h3>
+      <p>1. Battle Through The Heavens</p>
+      <p>2. Renegade Immortal</p>
+      <p>3. Slay the Gods</p>
+    </div>
+  </div>
+  
+  <!-- ANIME -->
+  <div class="fav-slide" style="background-image:url('anime.jpg')">
+    <div class="fav-overlay">
+      <h3>🎌 Anime</h3>
+      <p>1. Your Name</p>
+      <p>2. Weathering With You</p>
+      <p>3. Suzume</p>
+    </div>
+  </div>
+  
+</div>
+
+<!-- dots OUTSIDE -->
+<div class="fav-dots">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+</body>
+</html>
