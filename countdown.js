@@ -24,7 +24,7 @@
     } else if (days === 1) {
       el.innerHTML = `🎂 <b>1 day</b> left until my bday tomorrow (Sep 4) 🎈✨`;
     } else {
-      el.innerHTML = `🎂 <b>${days}</b> days until natnat's birthday 🎈`;
+      el.innerHTML = `🎂 <b>${days}</b> days until my birthday :> 🎈`;
     }
   }
   function launchConfetti() {

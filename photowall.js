@@ -1,7 +1,11 @@
-/* 📸 PHOTO WALL — actual wall layout (frames on a wall) + double-tap heart + server hearts. */
+/* 📸 PHOTO WALL — wall layout + multi-emoji reactions (❤️ 🔥 💀 😮)
+   Reactions stored at: photoReactions/{postId}/{emoji}/{uid} = true
+   Hearts kept at: photoHearts/{postId}/{uid} (backward compat)
+*/
 (() => {
+  const REACT_EMOJIS = ['❤️', '🔥', '💀', '😮'];
   let pendingDataUrl = null;
-  let heartsCache = {}; // postId -> { count, mine }
+  let reactCache = {};  // postId -> { emoji -> { count, mine } }
   let entries = [];
 
   function build() {
@@ -11,7 +15,7 @@
     sec.className = 'photowall-section pw-wall-section';
     sec.innerHTML = `
       <h2 class="section-title">📸 photo wall</h2>
-      <p class="section-sub">post a pic + a sweet message · double-tap a frame to ❤️ it</p>
+      <p class="section-sub">post a pic + a sweet message · react to each frame</p>
       <div class="pw-uploader">
         <input type="file" id="pwFile" accept="image/*" hidden>
         <button class="pw-pick" id="pwPickBtn">📁 pick image</button>
@@ -37,11 +41,11 @@
         pendingDataUrl = await resize(f, 600);
         document.getElementById('pwPreview').innerHTML = `<img src="${pendingDataUrl}">`;
         document.getElementById('pwPost').disabled = false;
-      } catch (err) { alert('couldn\'t read that image 😭'); }
+      } catch { alert('couldn\'t read that image 😭'); }
     });
     document.getElementById('pwPost').onclick = post;
     listen();
-    listenHearts();
+    listenReactions();
   }
 
   function resize(file, maxDim) {
@@ -67,25 +71,22 @@
     if (!pendingDataUrl) return;
     const db = window._natDB; if (!db) return alert('still loading…');
     const uid = db.getUID();
-    if (!uid) return alert('still connecting to the server… try again in a sec');
-    const cap = document.getElementById('pwCaption').value.trim();
+    if (!uid) return alert('still connecting… try again in a sec');
+    const cap  = document.getElementById('pwCaption').value.trim();
     const name = (document.getElementById('pwName').value.trim() || 'anonymous friend').slice(0, 30);
     const node = db.push(db.ref(db.db, 'photoWall'));
-    db.set(node, {
-      img: pendingDataUrl,
-      caption: cap,
-      uid, name, ts: Date.now(),
-    }).then(() => {
-      document.getElementById('pwCaption').value = '';
-      document.getElementById('pwName').value = '';
-      document.getElementById('pwPreview').innerHTML = '';
-      document.getElementById('pwFile').value = '';
-      pendingDataUrl = null;
-      document.getElementById('pwPost').disabled = true;
-      if (window.bumpChallenge) window.bumpChallenge('photo1', 1);
-      if (window.bumpQuest) window.bumpQuest('photo', 1);
-      if (window.addExp) window.addExp(60, 'photo wall post');
-    }).catch(e => alert('oops: ' + (e.message || e)));
+    db.set(node, { img: pendingDataUrl, caption: cap, uid, name, ts: Date.now() })
+      .then(() => {
+        document.getElementById('pwCaption').value = '';
+        document.getElementById('pwName').value    = '';
+        document.getElementById('pwPreview').innerHTML = '';
+        document.getElementById('pwFile').value = '';
+        pendingDataUrl = null;
+        document.getElementById('pwPost').disabled = true;
+        window.bumpChallenge?.('photo1', 1);
+        window.bumpQuest?.('photo', 1);
+        window.addExp?.(60, 'photo wall post');
+      }).catch(e => alert('oops: ' + (e.message || e)));
   }
 
   function listen() {
@@ -98,22 +99,60 @@
     });
   }
 
-  function listenHearts() {
+  function listenReactions() {
     const db = window._natDB;
-    if (!db) { setTimeout(listenHearts, 200); return; }
+    if (!db) { setTimeout(listenReactions, 200); return; }
+    const myUID = db.getUID();
+
+    // Listen to multi-reactions
+    db.onValue(db.ref(db.db, 'photoReactions'), snap => {
+      const data = snap.val() || {};
+      reactCache = {};
+      Object.entries(data).forEach(([pid, byEmoji]) => {
+        reactCache[pid] = {};
+        Object.entries(byEmoji || {}).forEach(([emoji, byUid]) => {
+          const ents = Object.entries(byUid || {});
+          reactCache[pid][emoji] = {
+            count: ents.filter(([, v]) => v).length,
+            mine:  !!(myUID && byUid[myUID]),
+          };
+        });
+      });
+      // Also merge old ❤️ from photoHearts for backward compat
+      paintReactions();
+    });
+
+    // Also keep reading old photoHearts for ❤️ compat
     db.onValue(db.ref(db.db, 'photoHearts'), snap => {
       const data = snap.val() || {};
-      const myUID = db.getUID();
-      heartsCache = {};
+      const myUID2 = db.getUID();
       Object.entries(data).forEach(([pid, byUid]) => {
-        const ents = Object.entries(byUid || {});
-        heartsCache[pid] = { count: ents.filter(([,v]) => v).length, mine: !!(myUID && byUid[myUID]) };
+        if (!reactCache[pid]) reactCache[pid] = {};
+        if (!reactCache[pid]['❤️']) {
+          const ents = Object.entries(byUid || {});
+          reactCache[pid]['❤️'] = {
+            count: ents.filter(([, v]) => v).length,
+            mine:  !!(myUID2 && byUid[myUID2]),
+          };
+        }
       });
-      paintHearts();
+      paintReactions();
     });
   }
 
-  function safe(s) { return (s || '').replace(/[<>&"']/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;' }[c])); }
+  function safe(s) {
+    return (s || '').replace(/[<>&"']/g, c =>
+      ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function buildReactHTML(postId) {
+    return REACT_EMOJIS.map(emoji => {
+      const r = reactCache[postId]?.[emoji] || { count: 0, mine: false };
+      return `<button class="pw-react-btn ${r.mine ? 'on' : ''}" data-pid="${postId}" data-emoji="${emoji}">
+        ${emoji}${r.count > 0 ? `<span class="pw-react-count">${r.count}</span>` : ''}
+      </button>`;
+    }).join('');
+  }
 
   function render() {
     const grid = document.getElementById('pwGrid');
@@ -124,10 +163,12 @@
     }
     const db = window._natDB;
     const myUID = db?.getUID();
+
     grid.innerHTML = entries.map((p, idx) => {
-      const canDelete = (myUID && (myUID === p.uid || myUID === db.ADMIN_UID));
+      const canDelete = myUID && (myUID === p.uid ||
+        (typeof isAdmin === 'function' ? isAdmin(myUID) : myUID === db.ADMIN_UID));
       const tilt = ((idx % 6) - 2.5) * 1.6;
-      const h = heartsCache[p.id] || { count: 0, mine: false };
+
       return `
         <div class="pw-frame" data-id="${p.id}" style="transform:rotate(${tilt.toFixed(1)}deg)">
           <div class="pw-frame-inner">
@@ -139,9 +180,9 @@
           <div class="pw-cap">${safe(p.caption)}</div>
           <div class="pw-meta">
             <span>— ${safe(p.name)}</span>
-            <button class="pw-heart-btn ${h.mine ? 'on' : ''}" data-hid="${p.id}" title="heart this">
-              ❤️ <span class="pw-heart-count">${h.count || 0}</span>
-            </button>
+          </div>
+          <div class="pw-reactions" id="pw-react-${p.id}">
+            ${buildReactHTML(p.id)}
           </div>
           ${canDelete ? `<button class="pw-del" data-id="${p.id}" title="delete">🗑</button>` : ''}
         </div>
@@ -149,42 +190,87 @@
     }).join('');
 
     grid.querySelectorAll('.pw-del').forEach(b => {
-      b.onclick = (e) => {
+      b.onclick = e => {
         e.stopPropagation();
         if (!confirm('delete this post?')) return;
-        db.remove(db.ref(db.db, 'photoWall/' + b.dataset.id)).catch(e => alert(e.message || e));
+        const db2 = window._natDB;
+        db2.remove(db2.ref(db2.db, 'photoWall/' + b.dataset.id)).catch(e => alert(e.message || e));
       };
     });
-    grid.querySelectorAll('.pw-heart-btn').forEach(b => {
-      b.onclick = (e) => { e.stopPropagation(); toggleHeart(b.dataset.hid, b.closest('.pw-frame')); };
+
+    grid.querySelectorAll('.pw-react-btn').forEach(b => {
+      b.onclick = e => { e.stopPropagation(); toggleReaction(b.dataset.pid, b.dataset.emoji, b.closest('.pw-frame')); };
     });
+
     grid.querySelectorAll('.pw-frame').forEach(fr => bindDoubleTap(fr));
   }
 
-  function paintHearts() {
-    const grid = document.getElementById('pwGrid'); if (!grid) return;
-    grid.querySelectorAll('.pw-frame').forEach(fr => {
-      const id = fr.dataset.id;
-      const h = heartsCache[id] || { count: 0, mine: false };
-      const cnt = fr.querySelector('.pw-heart-count');
-      const btn = fr.querySelector('.pw-heart-btn');
-      if (cnt) cnt.textContent = h.count || 0;
-      if (btn) btn.classList.toggle('on', !!h.mine);
+  function paintReactions() {
+    document.querySelectorAll('.pw-frame').forEach(fr => {
+      const pid = fr.dataset.id;
+      const container = fr.querySelector('.pw-reactions');
+      if (!container) return;
+      container.innerHTML = buildReactHTML(pid);
+      container.querySelectorAll('.pw-react-btn').forEach(b => {
+        b.onclick = e => { e.stopPropagation(); toggleReaction(b.dataset.pid, b.dataset.emoji, fr); };
+      });
     });
   }
 
-  function toggleHeart(postId, frameEl) {
+  function showReactError(msg) {
+    let toast = document.getElementById('pwReactToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'pwReactToast';
+      toast.style.cssText = [
+        'position:fixed', 'bottom:80px', 'left:50%', 'transform:translateX(-50%)',
+        'background:rgba(40,10,60,.92)', 'color:#fff', 'padding:10px 18px',
+        'border-radius:20px', 'font-size:13px', 'font-weight:600',
+        'z-index:9999', 'pointer-events:none', 'transition:opacity .3s',
+        'max-width:calc(100vw - 32px)', 'text-align:center',
+      ].join(';');
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+  }
+
+  function toggleReaction(postId, emoji, frameEl) {
     const db = window._natDB; if (!db) return;
-    const uid = db.getUID(); if (!uid) return;
-    const h = heartsCache[postId] || { count: 0, mine: false };
-    const path = `photoHearts/${postId}/${uid}`;
-    if (h.mine) {
-      db.remove(db.ref(db.db, path)).catch(()=>{});
+    const uid = db.getUID();
+    if (!uid) {
+      showReactError('log in first to react! 👀');
+      return;
+    }
+
+    const r = reactCache[postId]?.[emoji] || { mine: false };
+
+    // Use new photoReactions path for all emojis
+    const path = `photoReactions/${postId}/${emoji}/${uid}`;
+    if (r.mine) {
+      db.remove(db.ref(db.db, path)).catch(e => {
+        if (e.code === 'PERMISSION_DENIED' || String(e).includes('PERMISSION_DENIED')) {
+          showReactError('⚠️ reactions blocked — Firebase rules need updating. Add "photoReactions" to your security rules!');
+        }
+      });
     } else {
       db.set(db.ref(db.db, path), true).then(() => {
-        if (frameEl) bigHeartPop(frameEl);
-        if (window.addExp) window.addExp(2, 'photo heart');
-      }).catch(()=>{});
+        bigReactPop(frameEl, emoji);
+        window.addExp?.(2, 'photo reaction');
+      }).catch(e => {
+        if (e.code === 'PERMISSION_DENIED' || String(e).includes('PERMISSION_DENIED')) {
+          showReactError('⚠️ reactions blocked — Firebase rules need updating. Add "photoReactions" to your security rules!');
+        }
+      });
+    }
+
+    // Also maintain backward-compat ❤️ in photoHearts
+    if (emoji === '❤️') {
+      const heartPath = `photoHearts/${postId}/${uid}`;
+      if (r.mine) db.remove(db.ref(db.db, heartPath)).catch(() => {});
+      else db.set(db.ref(db.db, heartPath), true).catch(() => {});
     }
   }
 
@@ -193,19 +279,20 @@
     const onTap = () => {
       const now = Date.now();
       if (now - last < 320) {
-        const id = fr.dataset.id;
-        const h = heartsCache[id] || { mine: false };
-        if (!h.mine) toggleHeart(id, fr);
-        else bigHeartPop(fr);
+        toggleReaction(fr.dataset.id, '❤️', fr);
       }
       last = now;
     };
     fr.addEventListener('click', onTap);
     fr.addEventListener('touchend', onTap);
   }
-  function bigHeartPop(fr) {
-    const big = fr.querySelector('.pw-bigheart'); if (!big) return;
-    big.classList.remove('pop'); void big.offsetWidth;
+
+  function bigReactPop(fr, emoji) {
+    const big = fr?.querySelector('.pw-bigheart');
+    if (!big) return;
+    big.textContent = emoji;
+    big.classList.remove('pop');
+    void big.offsetWidth;
     big.classList.add('pop');
   }
 

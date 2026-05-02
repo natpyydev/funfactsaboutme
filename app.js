@@ -26,6 +26,54 @@ let chibiBusy = false;
 
 const _msgListeners = new Set();
 
+// ── PFP CACHE ──────────────────────────────────────────────────────────────
+// Stores { pfp: dataURL|null, showPfp: bool } keyed by uid.
+// null = loaded but user has showPfp:false or no pfp set.
+// undefined = not yet fetched.
+const _pfpCache = {};
+const _pfpPending = new Set();
+
+async function _fetchPfp(uid) {
+  if (!uid || _pfpPending.has(uid)) return;
+  _pfpPending.add(uid);
+  try {
+    const db = window._natDB;
+    if (!db) return;
+    const snap = await db.get(db.ref(db.db, 'userProfiles/' + uid));
+    const p = snap.val() || {};
+    _pfpCache[uid] = (p.showPfp && p.pfp) ? p.pfp : null;
+    // After loading, inject into any visible elements waiting for this uid
+    document.querySelectorAll(`[data-pfp-uid="${CSS.escape(uid)}"]`).forEach(el => {
+      _applyPfpEl(el, _pfpCache[uid]);
+    });
+  } catch { _pfpCache[uid] = null; }
+  finally { _pfpPending.delete(uid); }
+}
+
+function _applyPfpEl(el, pfpSrc) {
+  if (pfpSrc) {
+    el.innerHTML = `<img src="${pfpSrc}" alt="pfp" class="msg-pfp-img">`;
+  } else {
+    el.innerHTML = '';
+    el.style.display = 'none';
+  }
+}
+
+/** Call after injecting message/leaderboard HTML to async-fill pfp placeholders */
+function _loadPfpsInContainer(container) {
+  container.querySelectorAll('[data-pfp-uid]').forEach(el => {
+    const uid = el.dataset.pfpUid;
+    if (_pfpCache[uid] !== undefined) {
+      _applyPfpEl(el, _pfpCache[uid]);
+    } else {
+      _fetchPfp(uid);
+    }
+  });
+}
+// Expose globally so other modules (worldmap.js etc.) can use the cache
+window._natPfp = { load: _loadPfpsInContainer, cache: _pfpCache, fetch: _fetchPfp, apply: _applyPfpEl };
+// ──────────────────────────────────────────────────────────────────────────
+
 let lastSentTime = 0;
 const SEND_COOLDOWN = 10000;
 let allMessages = [];
@@ -53,23 +101,31 @@ const auth = getAuth(app);
 // BADGES
 // =========================
 let currentUID = null;
-const ADMIN_UID = "8IumnftXW1gJCa4iNbicZ0M0LOg2";
+const ADMIN_UID    = "zNDEej9J3kg79fUYxJjxLqrXJpz2";
+const OLD_ADMIN_UID = "8IumnftXW1gJCa4iNbicZ0M0LOg2";
+const ADMIN_EMAILS  = ['nieytan.smth@gmail.com'];
+
+function isAdmin(uid) {
+  if (uid === ADMIN_UID || uid === OLD_ADMIN_UID) return true;
+  const u = auth.currentUser;
+  return !!(u?.email && ADMIN_EMAILS.some(e => u.email.toLowerCase() === e.toLowerCase()));
+}
 
 function getEarnedBadges(...args) {
-  let result = computeBadges(...args);
+  const result = computeBadges(...args);
 
-  if (currentUID === ADMIN_UID) {
-    result = [];
-
+  if (isAdmin(currentUID)) {
+    const allIds = new Set();
     Object.values(BADGES).forEach(category => {
       if (Array.isArray(category)) {
-        category.forEach(b => result.push(b.id));
+        category.forEach(b => allIds.add(b.id));
       } else {
         Object.values(category).forEach(list => {
-          list.forEach(b => result.push(b.id));
+          list.forEach(b => allIds.add(b.id));
         });
       }
     });
+    return allIds;
   }
 
   return result;
@@ -115,7 +171,7 @@ onAuthStateChanged(auth, user => {
     currentUID = user.uid;
     
     console.log("UID:", currentUID);
-    console.log("isMod:", currentUID === ADMIN_UID);
+    console.log("isMod:", isAdmin(currentUID));
     
     // ✅ SAFE PLACE FOR EVERYTHING
     renderMessages();
@@ -273,11 +329,11 @@ window.SFX = {
   // ❤️ image reactions
   imgReact: e => {
     const m = {
-      '😍': 'romance sfx.mp3',
-      '😭': 'xue sfx.mp3',
-      '💅': 'rizz sfx.mp3',
-      '🥺': 'aww sfx.mp3',
-      '😆': 'bocchi sfx.mp3'
+      '😍': 'audio/romance sfx.mp3',
+      '😭': 'audio/xue sfx.mp3',
+      '💅': 'audio/rizz sfx.mp3',
+      '🥺': 'audio/aww sfx.mp3',
+      '😆': 'audio/bocchi sfx.mp3'
     };
     if (m[e]) playAudio(m[e]);
   },
@@ -285,11 +341,11 @@ window.SFX = {
   // 🔥 special emoji reactions
   specialReact: e => {
     const m = {
-      '\u{1F929}': 'Wow anime sound meme.mp3',
-      '\u{1F451}': 'Instagram thud.mp3',
-      '\u{1F480}': 'fah sfx.mp3',
-      '\u{1F928}': 'dexter meme.mp3',
-      '\u{1F624}': 'fah sfx.mp3'
+      '\u{1F929}': 'audio/Wow anime sound meme.mp3',
+      '\u{1F451}': 'audio/Instagram thud.mp3',
+      '\u{1F480}': 'audio/Fah sfx.mp3',
+      '\u{1F928}': 'audio/dexter meme.mp3',
+      '\u{1F624}': 'audio/Fah sfx.mp3'
     };
     const k = e.normalize('NFC');
     if (m[k]) playAudio(m[k]);
@@ -297,7 +353,7 @@ window.SFX = {
 
   // ✍️ typing (STABLE + FAST)
   type: () => {
-  const a = new Audio('type.mp3');
+  const a = new Audio('audio/type.mp3');
   a.currentTime = 0.05; // skip silence at start 👀
   a.volume = 0.3;
   a.playbackRate = 1.2 + Math.random() * 0.3;
@@ -306,7 +362,7 @@ window.SFX = {
 
   // 💬 bubble pop
   message: () => {
-    const a = new Audio('pop.mp3');
+    const a = new Audio('audio/pop.mp3');
     a.volume = 0.5;
     a.currentTime = 0;
     a.play().catch(()=>{});
@@ -336,7 +392,7 @@ window.SFX = {
   },
 
   // ❌ error
-  error: () => playAudio('error sfx.mp3'),
+  error: () => playAudio('audio/error sfx.mp3'),
 
   // 💬 react
   msgReact: () => playTone({ type: 'sine', freq: 660, duration: 0.1, volume: 0.12 }),
@@ -345,7 +401,7 @@ window.SFX = {
   upvote: () => playChord([523, 659], { type: 'sine', duration: 0.12, volume: 0.12 }),
 
   // 📌 pin
-  pin: () => playAudio('Instagram thud.mp3'),
+  pin: () => playAudio('audio/Instagram thud.mp3'),
 };
 
 
@@ -366,7 +422,7 @@ document.addEventListener('click', () => {
 // HELPERS
 // ============================================================
 function deleteMessage(key, ownerUID) {
-  if (currentUID !== ADMIN_UID && currentUID !== ownerUID) return;
+  if (!isAdmin(currentUID) && currentUID !== ownerUID) return;
 
   pendingDeleteKey = key;
   pendingOwnerUID = ownerUID;
@@ -548,144 +604,109 @@ function initReactionButtons() {
 }
 
 // ============================================================
-// STACK GALLERY 
+// GALLERY PHOTOS — update these with actual photo paths
 // ============================================================
 const PICS = [
-  { src:'uw.jpg',   alt:'pic 1', special:false },
-  { src:'Bus.jpg',  alt:'pic 2', special:false },
-  { src:'eg.jpg',   alt:'pic 3', special:false },
-  { src:'brush.jpg',alt:'pic 4', special:false },
-  { src:'pink.jpg', alt:'pic 5', special:false },
-  { src:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSx7UmNVJnx68GhmjxcgeHNK9NvuKXNMRha_uCbWiAo8Ma-CJ00f013u8c&s=10', alt:'special', special:true },
+  { src: 'images/pink.jpg',   alt: 'a photo of me 🌸',    special: false },
+  { src: 'images/uw.jpg',     alt: 'a photo of me 📸',    special: false },
+  { src: 'images/eg.jpg',     alt: 'a photo of me 💅',    special: false },
+  { src: 'images/Bus.jpg',    alt: 'a photo of me 🚌',    special: false },
+  { src: 'images/brush.jpg',  alt: 'a photo of me 🎨',    special: false },
+  { src: 'images/eg.jpg',     alt: 'the special one 👀✨', special: true  },
 ];
-
-let currentSlide = 0;
 const TOTAL_SLIDES = PICS.length;
 
+// ============================================================
+// PHOTO WALL GALLERY (replaces carousel)
+// ============================================================
 function initGallery() {
-  const gallery = document.getElementById('stackGallery');
-  if (!gallery) return;
+  const grid = document.getElementById('photosWallGrid');
+  if (!grid) return;
 
+  // Render hidden reaction containers
   for (let idx = 0; idx < TOTAL_SLIDES; idx++) {
     const hidden = document.createElement('div');
     hidden.id = 'gif-reactions-' + idx;
     hidden.style.display = 'none';
-    gallery.appendChild(hidden);
+    grid.appendChild(hidden);
   }
-
-  const stackEl = document.createElement('div');
-  stackEl.className = 'stack-inner';
-  stackEl.id = 'stackInner';
-
-  PICS.forEach((pic, idx) => {
-    const card = document.createElement('div');
-    card.className = 'stack-card' + (pic.special?' stack-special':'') + (idx===0?' stack-active':'');
-    card.dataset.idx = idx;
-    card.innerHTML = `
-      <div class="stack-img-wrap">
-        <img src="${pic.src}" alt="${pic.alt}" class="stack-img" loading="lazy">
-        <div class="stack-gradient"></div>
-        ${pic.special ? '<div class="stack-special-tag">✨ special 👀</div>' : ''}
-      </div>
-      <div class="stack-counter">${String(idx+1).padStart(2,'0')} / ${String(TOTAL_SLIDES).padStart(2,'0')}</div>
-      <div class="stack-reactions-row" id="stack-reactions-${idx}"></div>
-    `;
-    stackEl.appendChild(card);
-  });
-
-  gallery.appendChild(stackEl);
-
-  const dotsEl = document.createElement('div');
-  dotsEl.className = 'stack-dots';
-  dotsEl.id = 'stackDots';
-  for (let i = 0; i < TOTAL_SLIDES; i++) {
-    const d = document.createElement('button');
-    d.className = 'stack-dot' + (i===0?' active':'');
-    d.onclick = () => goToSlide(i);
-    dotsEl.appendChild(d);
-  }
-  gallery.appendChild(dotsEl);
 
   initReactionButtons();
 
-  let touchStart = 0;
-let isSwiping = false;
-let swipeLocked = false;
+  // Build wall frames
+  PICS.forEach((pic, idx) => {
+    const tilt = ((idx % 6) - 2.5) * 1.8;
+    const frame = document.createElement('div');
+    frame.className = 'photos-wall-frame' + (pic.special ? ' photos-wall-special' : '');
+    frame.style.transform = `rotate(${tilt.toFixed(1)}deg)`;
+    frame.dataset.idx = idx;
 
-stackEl.addEventListener('touchstart', e => {
-  if (swipeLocked) return;
-  touchStart = e.touches[0].clientX;
-  isSwiping = true;
-}, { passive: true });
+    frame.innerHTML = `
+      <div class="photos-wall-inner">
+        <img src="${pic.src}" alt="${pic.alt}" class="photos-wall-img" loading="lazy">
+        <div class="pw-tape pw-tape-l"></div>
+        <div class="pw-tape pw-tape-r"></div>
+        <span class="pw-bigheart">✨</span>
+        ${pic.special ? '<div class="photos-wall-special-tag">✨ special 👀</div>' : ''}
+      </div>
+      <div class="photos-wall-reactions" id="photos-reactions-${idx}"></div>
+    `;
 
-stackEl.addEventListener('touchend', e => {
-  if (!isSwiping || swipeLocked) return;
-  
-  const diff = touchStart - e.changedTouches[0].clientX;
-  
-  if (Math.abs(diff) > 60) {
-    swipeLocked = true;
-    
-    goToSlide(currentSlide + (diff > 0 ? 1 : -1));
-    
-    setTimeout(() => {
-      swipeLocked = false;
-    }, 250);
-  }
-  
-  isSwiping = false;
-}, { passive: true });
-  updateStack();
+    // Copy reactions from hidden container after buttons are rendered
+    grid.appendChild(frame);
+  });
+
+  // Render reactions into wall frames
+  renderWallReactions();
+
+  // Double-tap to react (first reaction)
+  grid.querySelectorAll('.photos-wall-frame').forEach(fr => bindWallDoubleTap(fr));
 }
 
-function goToSlide(idx) {
-  currentSlide = Math.max(0, Math.min(TOTAL_SLIDES-1, idx));
-  updateStack();
+function renderWallReactions() {
+  PICS.forEach((_, idx) => {
+    const src = document.getElementById('gif-reactions-' + idx);
+    const dst = document.getElementById('photos-reactions-' + idx);
+    if (src && dst) {
+      dst.innerHTML = src.innerHTML;
+      dst.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.onclick = e => { e.stopPropagation(); toggleGifReaction(btn, idx, btn.dataset.emoji); };
+        if (userGifReactions[idx]?.[btn.dataset.emoji]) btn.classList.add('active');
+      });
+    }
+  });
 }
 
 function updateStack() {
-  const cards = document.querySelectorAll('.stack-card');
-  const dots  = document.querySelectorAll('.stack-dot');
-
-  cards.forEach((card, i) => {
-    const offset = i - currentSlide;
-    card.classList.toggle('stack-active', i === currentSlide);
-    card.classList.toggle('stack-prev', offset < 0 && offset >= -2);
-    card.classList.toggle('stack-next', offset > 0 && offset <= 2);
-    card.classList.toggle('stack-far', Math.abs(offset) > 2);
-
-    const behind = Math.min(offset, 3);
-    const tx = offset < 0 ? -100 : offset === 0 ? 0 : behind * 6;
-    const ty = Math.abs(offset) === 0 ? 0 : Math.min(Math.abs(offset), 3) * 4;
-    const rot = offset < 0 ? -8 : offset === 0 ? 0 : Math.min(offset, 3) * 2;
-    const sc = offset === 0 ? 1 : Math.max(0.85, 1 - Math.abs(offset)*0.06);
-    const op = offset === 0 ? 1 : Math.abs(offset) === 1 ? 0.7 : Math.abs(offset) === 2 ? 0.4 : 0;
-    const zi = TOTAL_SLIDES - Math.abs(offset);
-
-    card.style.cssText = `
-      transform: translateX(${tx}%) translateY(${ty}px) rotate(${rot}deg) scale(${sc});
-      opacity: ${op};
-      z-index: ${zi};
-      pointer-events: ${offset === 0 ? 'all' : 'none'};
-    `;
-  });
-
-  dots.forEach((d,i) => d.classList.toggle('active', i===currentSlide));
-
-  for (let i = 0; i < TOTAL_SLIDES; i++) {
-    const src = document.getElementById('gif-reactions-'+i);
-    const dst = document.getElementById('stack-reactions-'+i);
-    if (src && dst && src.innerHTML.trim() !== "") {
-  dst.innerHTML = src.innerHTML;
+  // Re-render reactions after any update
+  renderWallReactions();
 }
-    if (dst) {
-      dst.querySelectorAll('.reaction-btn').forEach(btn => {
-        btn.onclick = e => { e.stopPropagation(); toggleGifReaction(btn, i, btn.dataset.emoji); };
-        if (userGifReactions[i]?.[btn.dataset.emoji]) btn.classList.add('active');
-      });
+
+function bindWallDoubleTap(fr) {
+  let last = 0;
+  const idx = Number(fr.dataset.idx);
+  const onTap = () => {
+    const now = Date.now();
+    if (now - last < 320) {
+      const heart = fr.querySelector('.pw-bigheart');
+      if (heart) {
+        heart.classList.remove('pop'); void heart.offsetWidth; heart.classList.add('pop');
+        setTimeout(() => heart.classList.remove('pop'), 600);
+      }
+      toggleGifReaction(
+        fr.querySelector('.reaction-btn'),
+        idx,
+        idx === SPECIAL_IDX ? SPECIAL_REACTIONS[0] : NORMAL_REACTIONS[0]
+      );
     }
-  }
+    last = now;
+  };
+  fr.addEventListener('click', onTap);
+  fr.addEventListener('touchend', onTap);
 }
+
+// goToSlide kept for compatibility but does nothing in wall mode
+function goToSlide() {}
 
 function toggleGifReaction(btn, idx, emoji) {
   const wasActive = userGifReactions[idx][emoji];
@@ -849,11 +870,11 @@ function bigReact(btn, msg, idx) {
 // 🎬 CHIBI REACTION
 if (idx === 1 || idx === 4) {
   // 😠 bad reactions → angry
-  playChibi('angry.webm');
+  playChibi('animations/angry.webm');
   chibiSay("hmph 😒");
 } else {
   // 😊 good reactions → happy
-  playChibi('happy.webm');
+  playChibi('animations/happy.webm');
   chibiSay("yaaay 💗");
 }
 }
@@ -992,6 +1013,9 @@ function renderMessages() {
   list.innerHTML=visible.map(m=>renderMessage(m)).join('');
   document.getElementById('seeMoreBtn').style.display=sorted.length>visibleMsgLimit?'block':'none';
 
+  // Async-load pfp avatars for visible senders (respects their showPfp preference)
+  _loadPfpsInContainer(list);
+
   list.querySelectorAll('.badge-chip').forEach(chip=>{
     chip.addEventListener('click',e=>{e.stopPropagation();showBadgeTooltip(chip.dataset.badgeId,chip);});
   });
@@ -1014,7 +1038,92 @@ function renderMessages() {
   list.querySelectorAll('.pin-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();togglePin(btn.dataset.msgKey);});
   });
+  // Reply toggle
+  list.querySelectorAll('.reply-toggle-btn').forEach(btn => {
+    const key = btn.dataset.msgKey;
+    btn.addEventListener('click', e => { e.stopPropagation(); toggleReplyArea(key, btn); });
+    listenToReplies(key, btn);
+  });
+  // Reply send
+  list.querySelectorAll('.reply-send-btn').forEach(btn => {
+    const key = btn.dataset.msgKey;
+    btn.addEventListener('click', e => { e.stopPropagation(); sendReply(key); });
+  });
+  list.querySelectorAll('.reply-input').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); sendReply(inp.id.replace('reply-input-', '')); }
+    });
+  });
   visible.forEach(m=>listenToMsgReactions(m._key));
+}
+
+// ============================================================
+// 💬 REPLY SYSTEM
+// ============================================================
+const _replyListeners = new Set();
+
+function toggleReplyArea(msgKey, btn) {
+  const area = document.getElementById('reply-area-' + msgKey);
+  if (!area) return;
+  const open = area.style.display !== 'none';
+  area.style.display = open ? 'none' : 'block';
+  btn.classList.toggle('active', !open);
+  if (!open) {
+    const inp = document.getElementById('reply-input-' + msgKey);
+    if (inp) inp.focus();
+  }
+}
+
+function listenToReplies(msgKey, toggleBtn) {
+  if (_replyListeners.has(msgKey)) return;
+  _replyListeners.add(msgKey);
+
+  onValue(ref(db, `messages/${msgKey}/replies`), snap => {
+    const data = snap.val() || {};
+    const replies = Object.entries(data)
+      .map(([id, r]) => ({ id, ...r }))
+      .sort((a, b) => (a.time || 0) - (b.time || 0));
+
+    // Update toggle button label
+    const btn = document.querySelector(`.reply-toggle-btn[data-msg-key="${msgKey}"]`);
+    if (btn) {
+      const countEl = btn.querySelector('.reply-count-label');
+      if (countEl) countEl.textContent = replies.length > 0 ? `${replies.length} ` : '';
+    }
+
+    // Render reply list
+    const list = document.getElementById('reply-list-' + msgKey);
+    if (!list) return;
+    if (!replies.length) { list.innerHTML = ''; return; }
+    list.innerHTML = replies.map(r => `
+      <div class="reply-item">
+        <span class="reply-sender">${escapeHtml(r.name || 'anon')}${isAdmin(r.uid) ? ' 👑' : ''}</span>
+        <span class="reply-text">${escapeHtml(r.text)}</span>
+        <span class="reply-time">${formatTimeAgo(r.time, '')}</span>
+      </div>
+    `).join('');
+  });
+}
+
+function sendReply(msgKey) {
+  const inp = document.getElementById('reply-input-' + msgKey);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  if (!currentUID) { showToast('still loading… try again'); return; }
+
+  const savedName = loadState().userName || '';
+  const name = savedName || 'anonymous friend';
+
+  push(ref(db, `messages/${msgKey}/replies`), {
+    text, name, uid: currentUID, time: Date.now(),
+  }).then(() => {
+    inp.value = '';
+    SFX.messageSent?.();
+  }).catch(err => {
+    showToast('could not send reply 😤');
+    console.error(err);
+  });
 }
 function loadMore(){visibleMsgLimit+=5;renderMessages();}
 
@@ -1028,7 +1137,7 @@ function toggleUpvote(msgKey, btn) {
 }
 
 function togglePin(msgKey) {
-const isMod = currentUID === ADMIN_UID;// 🔥 your admin system
+const isMod = isAdmin(currentUID);// 🔥 your admin system
 
   if (!isMod) {
     showToast('only mods can pin! 🔒');
@@ -1136,7 +1245,7 @@ const timeDisplay = isMe
   }).join('');
 
   const upvoteCount=m.upvotes||0;
-  const isMod = currentUID === ADMIN_UID;
+  const isMod = isAdmin(currentUID);
 
 return `<div class="message-bubble ${isPinned?'pinned-msg':''} ${isMe?'legend-msg':''}">
   
@@ -1146,8 +1255,9 @@ return `<div class="message-bubble ${isPinned?'pinned-msg':''} ${isMe?'legend-ms
   <div class="msg-top-row">
 
     <div class="msg-meta">
+      <div class="msg-pfp-avatar" data-pfp-uid="${m.uid || ''}"></div>
       <span class="msg-sender">
-        ${m.uid === ADMIN_UID
+        ${isAdmin(m.uid)
           ? escapeHtml(m.name || 'anonymous friend') + ' <span class="admin-crown">👑</span>'
           : escapeHtml(m.name || 'anonymous friend')}
       </span>
@@ -1159,7 +1269,11 @@ return `<div class="message-bubble ${isPinned?'pinned-msg':''} ${isMe?'legend-ms
         ▲ <span class="upvote-count">${upvoteCount>0?formatCount(upvoteCount):''}</span>
       </button>
 
-      ${(currentUID === ADMIN_UID || currentUID === m.uid) ? `
+      <button class="reply-toggle-btn" data-msg-key="${m._key}">
+        💬 <span class="reply-count-label"></span>Reply
+      </button>
+
+      ${(isAdmin(currentUID) || currentUID === m.uid) ? `
         <button 
           class="delete-btn" 
           data-key="${m._key}" 
@@ -1181,6 +1295,15 @@ return `<div class="message-bubble ${isPinned?'pinned-msg':''} ${isMe?'legend-ms
   <div class="msg-text">${escapeHtml(m.text)}</div>
 
   <div class="msg-reactions-row">${reactHTML}</div>
+
+  <!-- REPLY AREA (hidden by default) -->
+  <div class="msg-reply-area" id="reply-area-${m._key}" style="display:none">
+    <div class="reply-list" id="reply-list-${m._key}"></div>
+    <div class="reply-form">
+      <input class="reply-input" id="reply-input-${m._key}" type="text" placeholder="write a reply…" maxlength="200">
+      <button class="reply-send-btn" data-msg-key="${m._key}">send 💌</button>
+    </div>
+  </div>
 
 </div>`;
 }
@@ -1344,40 +1467,35 @@ window.openFavorites = function() {
 window.closeFavorites = function() {
   document.getElementById('favoritesModal').classList.remove('active');
 };
+let _chibiIdleTimer = null;
 function playChibi(src, loop = false) {
+  // Normalise: accept .webm paths and silently redirect to .gif
+  src = src.replace(/\.webm$/i, '.gif');
+
   const chibi = document.getElementById('chibi');
   if (!chibi) return;
 
+  // Don't interrupt a one-shot reaction with another one-shot
   if (chibiBusy && !loop) return;
 
-  chibiBusy = true;
+  chibiBusy = !loop;
   isReacting = !loop;
 
-  // ✅ SAFE SOURCE CHECK (no flicker)
-  const current = chibi.getAttribute("data-src");
+  // Set new source only when it actually changes (avoids gif restart flicker)
+  const current = chibi.getAttribute('data-src');
   if (current !== src) {
-    chibi.setAttribute("data-src", src);
+    chibi.setAttribute('data-src', src);
     chibi.src = src;
-    chibi.load(); // 🔥 important
   }
 
-  chibi.loop = loop;
-
-  // ✅ ONLY reset if needed
-  if (chibi.paused || chibi.ended) {
-    chibi.currentTime = 0;
-  }
-
-  chibi.play().catch(() => {});
-
+  // For one-shot reactions, revert to idle after 2 s (GIFs can't fire onended)
+  clearTimeout(_chibiIdleTimer);
   if (!loop) {
-    chibi.onended = () => {
+    _chibiIdleTimer = setTimeout(() => {
       chibiBusy = false;
       isReacting = false;
-      playChibi('idle.webm', true);
-    };
-  } else {
-    chibiBusy = false;
+      playChibi('animations/idle.gif', true);
+    }, 2000);
   }
 }
 // 🧠 CHIBI TALK SYSTEM
@@ -1391,11 +1509,6 @@ window.chibiSay = function(text, duration = 4000) {
   const chibi = document.getElementById('chibi');
 
   if (!bubble) return;
-
-  // 🎬 keep video alive
-  if (chibi && chibi.paused) {
-    chibi.play().catch(()=>{});
-  }
 
   bubble.classList.add('chibi-show');
 
@@ -1439,21 +1552,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const chibi = document.getElementById('chibi');
   if (!chibi) return;
 
-  // 🎬 video config (IMPORTANT)
-  chibi.muted = true;
-  chibi.setAttribute('muted', '');
-  chibi.setAttribute('playsinline', '');
-  chibi.autoplay = true;
-  chibi.loop = true;
-
-  // ▶️ start idle animation
-  playChibi('idle.webm', true);
+  // ▶️ start idle gif animation
+  playChibi('animations/idle.gif', true);
 
   // 🔓 unlock audio + video (FIRST CLICK REQUIRED)
   document.body.addEventListener('click', () => {
 
     // unlock typing audio (silent play)
-    const unlock = new Audio('type.mp3');
+    const unlock = new Audio('audio/type.mp3');
     unlock.volume = 0;
     unlock.play().catch(()=>{});
 
@@ -1495,7 +1601,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   chibi.addEventListener('ended', () => {
-    playChibi('idle.webm', true);
+    playChibi('animations/idle.webm', true);
   });
 
 });
@@ -1570,13 +1676,19 @@ function updateHotBadge(id) {
     row.appendChild(badge);
   }
 
-  // 🔥 LEVELS
-  if (score > 100) {
-  badge.textContent = "🔥 TRENDING";
-} else {
-  badge.textContent = "🔥 HOT";
-}
-
+  // 🔥 TIERS — badge label + CSS class
+  badge.className = "hot-badge svc-hottest-badge";
+  if (score >= 200) {
+    badge.innerHTML = 'LEGENDARY';
+    badge.style.cssText = 'font-size:10px;animation-duration:1.4s';
+  } else if (score >= 100) {
+    badge.innerHTML = 'TRENDING';
+  } else if (score >= 50) {
+    badge.innerHTML = 'HOT';
+  } else {
+    badge.innerHTML = 'POPULAR';
+    badge.style.animationDuration = '3.5s';
+  }
   row.classList.add("best-seller");
 }
 
@@ -1593,11 +1705,18 @@ window.rateService = function(id, btn) {
 
   serviceData[id].stars = prev + 1;
   animateCount(span, prev, serviceData[id].stars);
-
   saveService(id);
-
-  // 🔥 IMPORTANT (you were missing this)
   updateHotBadge(id);
+
+  // ⭐ combo + effects (calls enhanceClick after combo system is defined)
+  if (typeof enhanceClick === 'function') enhanceClick(id, btn, 'star');
+  else {
+    spawnRipple?.(btn);
+    bumpCombo?.(id, btn, 'star');
+  }
+
+  // 🌐 sync global totals
+  runTransaction(ref(db, 'serviceStars/' + id), v => (v || 0) + 1).catch(() => {});
 };
 
 
@@ -1613,10 +1732,18 @@ window.heartService = function(id, btn) {
 
   serviceData[id].hearts = prev + 1;
   animateCount(span, prev, serviceData[id].hearts);
-
   saveService(id);
-
   updateHotBadge(id);
+
+  // ❤️ combo + effects
+  if (typeof enhanceClick === 'function') enhanceClick(id, btn, 'heart');
+  else {
+    spawnRipple?.(btn);
+    bumpCombo?.(id, btn, 'heart');
+  }
+
+  // 🌐 sync global totals
+  runTransaction(ref(db, 'serviceHearts/' + id), v => (v || 0) + 1).catch(() => {});
 };
 
 
@@ -1849,7 +1976,7 @@ function renderLeaderboard(limit = 5) {
   list.innerHTML = ranked.map((u, i) => {
     const pct       = Math.round((u.score / max) * 100);
     const isMe      = u.uid === currentUID;
-    const isAdmin   = u.uid === ADMIN_UID;
+    const isDevUser = isAdmin(u.uid);
     const safe      = escapeHtml(u.name);
     const combos    = (u.uid && userCombosCache[u.uid]) || 0;
     const comboHTML = renderComboBadgeHTML(combos);
@@ -1857,8 +1984,9 @@ function renderLeaderboard(limit = 5) {
     return `
       <div class="lb-row lb-${i+1} ${isMe ? 'lb-me' : ''}" data-lb-key="${u.uid || u.name}">
         <div class="lb-medal">${medals[i] || '✨'}</div>
+        ${u.uid ? `<div class="lb-pfp-avatar" data-pfp-uid="${u.uid}"></div>` : ''}
         <div class="lb-name">
-          ${safe}${isAdmin ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
+          ${safe}${isDevUser ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
           <div class="lb-meta">▲ ${u.upvotes} · 💬 ${u.reactions} · 📩 ${u.msgs}</div>
           ${comboHTML ? `<div class="lb-badges">${comboHTML}</div>` : ''}
         </div>
@@ -1867,6 +1995,8 @@ function renderLeaderboard(limit = 5) {
       </div>
     `;
   }).join('');
+
+  _loadPfpsInContainer(list);
 
   renderMyComboPanel();
 }
@@ -2187,7 +2317,7 @@ renderLeaderboard = function(limit = 5) {
     const v = valueOf(u);
     const pct = Math.round((v / max) * 100);
     const isMe = u.uid === currentUID;
-    const isAdmin = u.uid === ADMIN_UID;
+    const isDevUser = isAdmin(u.uid);
     const safe = escapeHtml(u.name);
     const comboHTML = renderComboBadgeHTML(u.combos);
     const meta = [
@@ -2202,7 +2332,7 @@ renderLeaderboard = function(limit = 5) {
       <div class="lb-row lb-${i+1} ${isMe ? 'lb-me' : ''}" data-lb-key="${u.uid || u.name}">
         <div class="lb-medal">${medals[i] || '✨'}</div>
         <div class="lb-name">
-          ${safe}${isAdmin ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
+          ${safe}${isDevUser ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
           <div class="lb-meta">${meta}</div>
           ${comboHTML ? `<div class="lb-badges">${comboHTML}</div>` : ''}
         </div>
@@ -2283,7 +2413,7 @@ renderLeaderboard = function(limit = 5) {
     const v = valueOf(u);
     const pct = Math.round((v / max) * 100);
     const isMe = u.uid === currentUID;
-    const isAdmin = u.uid === ADMIN_UID;
+    const isDevUser = isAdmin(u.uid);
     const safe = escapeHtml(u.name);
     const comboHTML = renderComboBadgeHTML(u.combos);
     const meta = [
@@ -2299,7 +2429,7 @@ renderLeaderboard = function(limit = 5) {
       <div class="lb-row lb-${i+1} ${isMe ? 'lb-me' : ''}" data-lb-key="${u.uid || u.name}">
         <div class="lb-medal">${medals[i] || '✨'}</div>
         <div class="lb-name">
-          ${safe}${isAdmin ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
+          ${safe}${isDevUser ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
           <div class="lb-meta">${meta}</div>
           ${comboHTML ? `<div class="lb-badges">${comboHTML}</div>` : ''}
         </div>
@@ -2312,14 +2442,101 @@ renderLeaderboard = function(limit = 5) {
   renderMyComboPanel();
 };
 
-// extend the sort-label updater to handle the two new modes
+// extend the sort-label updater to handle all modes
 const _origSetSort_v4 = window.setLeaderboardSort;
 window.setLeaderboardSort = function(mode) {
   _origSetSort_v4(mode);
-  if (mode === 'stars' || mode === 'hearts') {
-    const lbl = document.getElementById('lbSortLabel');
-    if (lbl) lbl.textContent = '— ' + (mode === 'stars' ? 'Most Stars Given' : 'Most Hearts Given');
+  const LABELS = {
+    stars:       '— Most Stars Given',
+    hearts:      '— Most Hearts Given',
+    upvotes:     '— Most Upvotes',
+    reactions:   '— Most Reactions',
+    starshearts: '— Overall (Stars + Hearts)',
+    combos:      '— Highest Combos',
+    game:        '— Highest Game Points',
+    overall:     '— Best Overall',
+  };
+  const lbl = document.getElementById('lbSortLabel');
+  if (lbl && LABELS[mode]) lbl.textContent = LABELS[mode];
+};
+
+// =========================================================
+// 🏆 LEADERBOARD — 3 new user-requested modes
+//   'upvotes'     → most message upvotes
+//   'reactions'   → most message reactions (combined)
+//   'starshearts' → stars given + hearts given (service)
+// =========================================================
+const _origRenderLeaderboard_v5 = renderLeaderboard;
+renderLeaderboard = function(limit = 5) {
+  const mode = leaderboardSort;
+  if (mode !== 'upvotes' && mode !== 'reactions' && mode !== 'starshearts') {
+    return _origRenderLeaderboard_v5(limit);
   }
+  const list = document.getElementById('leaderboardList');
+  if (!list) return;
+
+  const all = getUserLeaderboard(100);
+  all.forEach(u => {
+    u.combos      = (u.uid && userCombosCache[u.uid])    || 0;
+    u.gameScore   = (u.uid && userGameScoresCache[u.uid])|| 0;
+    u.starsGiven  = (u.uid && userStarsCache[u.uid])     || 0;
+    u.heartsGiven = (u.uid && userHeartsCache[u.uid])    || 0;
+  });
+
+  let valueOf, valueLabel, emptyMsg, sorted;
+  if (mode === 'upvotes') {
+    valueOf    = u => u.upvotes;
+    valueLabel = u => `▲ ${u.upvotes.toLocaleString()}`;
+    emptyMsg   = 'no upvotes yet — send messages and get rated! ▲';
+    sorted     = all.filter(u => u.upvotes > 0).sort((a,b) => b.upvotes - a.upvotes).slice(0, limit);
+  } else if (mode === 'reactions') {
+    valueOf    = u => u.reactions;
+    valueLabel = u => `💬 ${u.reactions.toLocaleString()}`;
+    emptyMsg   = 'no message reactions yet 💀 send a message!';
+    sorted     = all.filter(u => u.reactions > 0).sort((a,b) => b.reactions - a.reactions).slice(0, limit);
+  } else {
+    // starshearts — service ⭐ + ❤️
+    valueOf    = u => (u.starsGiven + u.heartsGiven);
+    valueLabel = u => `⭐${u.starsGiven} ❤️${u.heartsGiven}`;
+    emptyMsg   = 'no stars or hearts given yet — rate the services! ⭐❤️';
+    sorted     = all.filter(u => valueOf(u) > 0).sort((a,b) => valueOf(b) - valueOf(a)).slice(0, limit);
+  }
+
+  if (!sorted.length) {
+    list.innerHTML = `<p class="loading-text" style="text-align:center;opacity:.6">${emptyMsg}</p>`;
+    renderMyComboPanel();
+    return;
+  }
+
+  const max    = valueOf(sorted[0]) || 1;
+  const medals = ['🥇','🥈','🥉','✨','✨'];
+
+  list.innerHTML = sorted.map((u, i) => {
+    const v = valueOf(u);
+    const pct = Math.round((v / max) * 100);
+    const isMe      = u.uid === currentUID;
+    const isDevUser = isAdmin(u.uid);
+    const safe      = escapeHtml(u.name);
+    const comboHTML = renderComboBadgeHTML(u.combos);
+    const meta = [
+      `▲ ${u.upvotes}`, `💬 ${u.reactions}`, `📩 ${u.msgs}`,
+      u.starsGiven  ? `⭐ ${u.starsGiven}`  : null,
+      u.heartsGiven ? `❤️ ${u.heartsGiven}` : null,
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="lb-row lb-${i+1} ${isMe ? 'lb-me' : ''}" data-lb-key="${u.uid || u.name}">
+        <div class="lb-medal">${medals[i] || '✨'}</div>
+        <div class="lb-name">
+          ${safe}${isDevUser ? ' <span class="admin-crown">👑</span>' : ''}${isMe ? ' <span style="opacity:.6;font-weight:600">(you)</span>' : ''}
+          <div class="lb-meta">${meta}</div>
+          ${comboHTML ? `<div class="lb-badges">${comboHTML}</div>` : ''}
+        </div>
+        <div class="lb-score">${valueLabel(u)}</div>
+        <div class="lb-bar"><span style="width:${pct}%"></span></div>
+      </div>`;
+  }).join('');
+
+  renderMyComboPanel();
 };
 
 // =========================================================
@@ -2445,7 +2662,7 @@ window.__badgesAPI = {
       try { window.addExp?.(2, 'message react'); } catch {}
       try { window.bumpQuest?.('tap', 1); } catch {}
       // VIP / mod special react
-      const isMod = currentUID === ADMIN_UID || (userRoleBadges && userRoleBadges.includes('role_mod'));
+      const isMod = isAdmin(currentUID) || (userRoleBadges && userRoleBadges.includes('role_mod'));
       const isDev = userRoleBadges && userRoleBadges.includes('role_dev');
       if (currentUID && (isMod || isDev || isVIP(currentUID))) {
         const role = isDev ? 'dev' : (isMod ? 'mod' : 'vip');

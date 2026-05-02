@@ -113,8 +113,11 @@
       Object.entries(data).forEach(([uid, p]) => {
         const isMine = uid === myUID;
         const popup = `
-          <div class="map-popup">
-            <b>${safe(p.name)}</b>${isMine ? ' <small>(you)</small>' : ''}
+          <div class="map-popup" data-popup-uid="${uid}">
+            <div class="map-popup-header">
+              <div class="map-popup-pfp" data-pfp-uid="${uid}"></div>
+              <b>${safe(p.name)}</b>${isMine ? ' <small>(you)</small>' : ''}
+            </div>
             <p>${safe(p.message) || '<i style="opacity:.6">no message</i>'}</p>
             <div class="map-popup-date">📅 dropped ${fmtDate(p.ts)}</div>
             ${(isMine || myUID === db.ADMIN_UID) ? `<button onclick="window._removePin('${uid}')">remove pin 🗑</button>` : ''}
@@ -128,6 +131,15 @@
             .addTo(map).bindPopup(popup);
         }
       });
+
+      // After all markers update, listen for popup opens to fill in pfp
+      if (!map._pfpBound) {
+        map._pfpBound = true;
+        map.on('popupopen', e => {
+          const content = e.popup.getElement();
+          if (content && window._natPfp) window._natPfp.load(content);
+        });
+      }
     });
   }
 

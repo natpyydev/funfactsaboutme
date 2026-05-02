@@ -40,6 +40,10 @@
             <input type="checkbox" id="profUsePfpInGame">
             <span>Use my PFP as my game character sticker</span>
           </label>
+          <label class="prof-toggle">
+            <input type="checkbox" id="profShowPfp">
+            <span>Show my PFP publicly on messages, leaderboard &amp; map pins 🌍</span>
+          </label>
           <button class="prof-save-btn" id="profSaveBtn">save profile 💾</button>
         </div>
         <div class="prof-block">
@@ -53,7 +57,7 @@
     listen();
   }
 
-  let local = { name: '', pfp: '', plate: 'paper', equippedBadges: [], hideLevel: false, usePfpInGame: false };
+  let local = { name: '', pfp: '', plate: 'paper', equippedBadges: [], hideLevel: false, usePfpInGame: false, showPfp: false };
 
   function wire() {
     document.getElementById('profPfpEdit').onclick = () => document.getElementById('profPfpFile').click();
@@ -68,6 +72,7 @@
     document.getElementById('profNameInput').addEventListener('input', e => { local.name = e.target.value.slice(0, 30); });
     document.getElementById('profHideLevel').addEventListener('change', e => { local.hideLevel = e.target.checked; });
     document.getElementById('profUsePfpInGame').addEventListener('change', e => { local.usePfpInGame = e.target.checked; });
+    document.getElementById('profShowPfp').addEventListener('change', e => { local.showPfp = e.target.checked; });
     window.addEventListener('plate-changed', e => { local.plate = e.detail.plate; paintPlate(); });
 
     paintAll();
@@ -101,6 +106,8 @@
     document.getElementById('profNameInput').value = local.name || '';
     document.getElementById('profHideLevel').checked = !!local.hideLevel;
     document.getElementById('profUsePfpInGame').checked = !!local.usePfpInGame;
+    const showPfpEl = document.getElementById('profShowPfp');
+    if (showPfpEl) showPfpEl.checked = !!local.showPfp;
   }
 
   function paintLevel() {
@@ -205,6 +212,7 @@
       equippedBadges: local.equippedBadges || [],
       hideLevel: !!local.hideLevel,
       usePfpInGame: !!local.usePfpInGame,
+      showPfp: !!local.showPfp,
       level: lvl.level,
       ts: Date.now(),
     }).then(() => {
@@ -225,6 +233,7 @@
         if (Array.isArray(p.equippedBadges)) local.equippedBadges = p.equippedBadges;
         if (typeof p.hideLevel === 'boolean') local.hideLevel = p.hideLevel;
         if (typeof p.usePfpInGame === 'boolean') local.usePfpInGame = p.usePfpInGame;
+        if (typeof p.showPfp === 'boolean') local.showPfp = p.showPfp;
         paintAll();
       });
     };

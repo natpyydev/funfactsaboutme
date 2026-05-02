@@ -1,6 +1,6 @@
 /* 🎵 MUSIC PLAYER + 🐱 CHIBI CONTROLS (hide / mute / change song) */
 (() => {
-  const DEFAULT = { name: 'Cozy Clicks (default)', src: 'Cozy Clicks.mp3' };
+  const DEFAULT = { name: 'Cozy Clicks (default)', src: 'audio/Cozy Clicks.mp3' };
   let songs = JSON.parse(localStorage.getItem('nat-songs') || 'null');
   if (!songs || !songs.length) {
     songs = [DEFAULT];

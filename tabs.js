@@ -13,6 +13,7 @@
     { id: 'leaderboard', label: '🏆 Leaderboard', selectors: ['.leaderboard-section'] },
     { id: 'play',        label: '🎮 Play',        selectors: ['#quizSection','#challengesSection','#questsSection'] },
     { id: 'rate',        label: '💅 Rate Po',     selectors: ['.react-section'] },
+    { id: 'credits',     label: '🎬 Credits',     selectors: ['#creditsSection'] },
   ];
   let active = localStorage.getItem('nat-tab') || 'photos';
   if (!TABS.some(t => t.id === active)) active = 'photos';
@@ -58,7 +59,7 @@
     let tries = 0;
     const id = setInterval(() => {
       tries++;
-      const ready = document.getElementById('photoWallSection')
+      const ready = document.getElementById('creditsSection') && document.getElementById('photoWallSection')
                  && document.getElementById('worldMapSection')
                  && document.getElementById('quizSection')
                  && document.getElementById('challengesSection')

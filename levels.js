@@ -48,6 +48,33 @@
   }
   let state = load();
 
+  // ============================================================
+  // DEV ACCOUNT — auto-max level 99 + unlock all plates
+  // ============================================================
+  function devMaxLevel() {
+    state.level = MAX_LEVEL;
+    state.exp = 0;
+    state.unlocked = PLATES.map(p => p.id);
+    if (!state.plate || state.plate === 'paper') state.plate = 'mythic';
+    save(state);
+    paintBar();
+  }
+
+  // Check after auth loads (window._natDB is set in app.js)
+  function checkDevMax() {
+    const natDB = window._natDB;
+    if (!natDB) { setTimeout(checkDevMax, 300); return; }
+    const uid = natDB.getUID();
+    if (!uid) { setTimeout(checkDevMax, 300); return; }
+    const ADMIN_NEW = "zNDEej9J3kg79fUYxJjxLqrXJpz2";
+    const ADMIN_OLD = "8IumnftXW1gJCa4iNbicZ0M0LOg2";
+    if ((uid === ADMIN_NEW || uid === ADMIN_OLD) && state.level < MAX_LEVEL) {
+      devMaxLevel();
+      window.dispatchEvent(new CustomEvent('plate-changed', { detail: { plate: state.plate } }));
+    }
+  }
+  setTimeout(checkDevMax, 1000);
+
   function syncToFirebase(s) {
     const db = window._natDB; if (!db) return;
     const uid = db.getUID(); if (!uid) return;

@@ -1392,6 +1392,15 @@ main { max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
 }
 .fav-slide:hover::after { opacity: 1; }
 
+.fav-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 14px 18px 18px;
+  background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 100%);
+  border-radius: 0 0 22px 22px;
+  color: #fff;
+  z-index: 2;
+}
 .fav-overlay h3 { font-weight: 800; text-shadow: 0 4px 12px rgba(0,0,0,0.6); }
 .fav-overlay p  { font-size: 0.95rem; opacity: 0.95; margin: 2px 0; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
 
@@ -3129,7 +3138,7 @@ body.theme-christmas  .bg { background: radial-gradient(circle at 30% 30%, #d6e9
   max-width: 920px;
   margin: 0 auto;
   padding: 0 12px;
-  perspective: 1200px;
+
 }
 .fact-card-v2 {
   position: relative;
@@ -3142,8 +3151,7 @@ body.theme-christmas  .bg { background: radial-gradient(circle at 30% 30%, #d6e9
   cursor: pointer;
   font: inherit;
   color: inherit;
-  transform-style: preserve-3d;
-  transition: transform .7s cubic-bezier(.2,.8,.2,1);
+  transition: transform .3s ease;
   outline: none;
   animation: factPop .6s cubic-bezier(.34,1.56,.64,1) both;
 }
@@ -3156,8 +3164,7 @@ body.theme-christmas  .bg { background: radial-gradient(circle at 30% 30%, #d6e9
   100% { opacity: 1; transform: translateY(0) rotateX(0); }
 }
 .fact-card-v2:hover { transform: translateY(-4px); }
-.fact-card-v2.flipped { transform: rotateY(180deg); }
-
+/* No 3D flip — simple fade reveal */
 .fact-card-v2 .fc-front,
 .fact-card-v2 .fc-back {
   position: absolute;
@@ -3169,13 +3176,12 @@ body.theme-christmas  .bg { background: radial-gradient(circle at 30% 30%, #d6e9
   justify-content: center;
   padding: 20px;
   text-align: center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   box-shadow:
     0 14px 30px rgba(255, 130, 180, .22),
     0 4px 10px rgba(180, 130, 255, .14),
     inset 0 1px 0 rgba(255,255,255,.5);
   overflow: hidden;
+  transition: opacity 0.35s ease;
 }
 .fact-card-v2 .fc-front {
   background:
@@ -3201,8 +3207,11 @@ body.theme-christmas  .bg { background: radial-gradient(circle at 30% 30%, #d6e9
     radial-gradient(120% 100% at 100% 100%, rgba(255,255,255,.55), rgba(255,255,255,0) 50%),
     linear-gradient(315deg, var(--fc-1, #ff7eb6), var(--fc-2, #c47bff));
   color: #fff;
-  transform: rotateY(180deg);
+  opacity: 0;
+  pointer-events: none;
 }
+.fact-card-v2.revealed .fc-front { opacity: 0; pointer-events: none; }
+.fact-card-v2.revealed .fc-back  { opacity: 1; pointer-events: all; }
 .fact-card-v2 .fc-num {
   font-family: 'Playfair Display', serif;
   font-size: 56px;
@@ -3609,8 +3618,7 @@ body.theme-birthday .bg {
   width: 120px !important;
 }
 
-/* --- flip cards: keep flipped state when hovered --- */
-.fact-card-v2.flipped:hover { transform: rotateY(180deg) !important; }
+/* flip hover override removed — using simple reveal now */
 
 /* --- confirm popup ABOVE chibi --- */
 .confirm-popup { z-index: 10001 !important; }
@@ -4640,3 +4648,384 @@ body.screen-shake { animation: screenShake .5s linear; }
 .b-ch-yearly  { background: linear-gradient(135deg,#ff8cba,#ff5a9e); color:#fff; }
 .b-ch-combo   { background: linear-gradient(135deg,#ff6b1a,#ffd86b); color:#fff; }
 .b-vip-member { background: linear-gradient(135deg,#b9f0ff,#5cb8ff); color:#fff; }
+
+/* =============================================
+   SPORTS CARD — dual chip pills
+   ============================================= */
+.sports-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.sport-chip {
+  background: linear-gradient(135deg, #ffd6e7, #e2c6ff);
+  color: #6b3fa0;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(180,120,255,.2);
+}
+
+/* =============================================
+   PHOTOGRAPHY — sample photo slots
+   ============================================= */
+.hobby-samples { display: flex; gap: 6px; margin: 10px 0; }
+.sample-slot {
+  flex: 1; height: 70px; border-radius: 10px;
+  overflow: hidden; position: relative;
+  border: 2px dashed #f7c8df;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .25s;
+}
+.sample-slot:hover { border-color: #ff7eb6; }
+.sample-empty { font-size: 11px; color: #cca0bb; text-align: center; user-select: none; }
+
+/* =============================================
+   PHOTOS WALL GRID
+   ============================================= */
+.photos-wall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+  padding: 20px 10px;
+}
+.photos-wall-frame {
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  transition: transform .3s ease, box-shadow .3s ease;
+  cursor: pointer;
+}
+.photos-wall-frame:hover { transform: scale(1.06) rotate(0deg) !important; box-shadow: 0 12px 32px rgba(0,0,0,.28); z-index: 2; }
+.photos-wall-inner { position: relative; padding: 8px 8px 28px; }
+.photos-wall-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 2px; display: block; }
+.pw-tape {
+  position: absolute; top: -8px;
+  width: 38px; height: 14px; border-radius: 3px;
+  background: rgba(255,240,200,.82);
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+}
+.pw-tape-l { left: 16px; transform: rotate(-6deg); }
+.pw-tape-r { right: 16px; transform: rotate(6deg); }
+.pw-bigheart {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.pw-bigheart.pop { animation: popHeart .6s ease forwards; }
+@keyframes popHeart {
+  0%  { opacity: 0; transform: scale(.5); }
+  40% { opacity: 1; transform: scale(1.4); }
+  70% { opacity: 1; transform: scale(1); }
+  100%{ opacity: 0; transform: scale(1.1); }
+}
+.photos-wall-reactions { padding: 4px 6px 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+.photos-wall-special { box-shadow: 0 0 0 3px #ffb6e6, 0 6px 20px rgba(255,100,180,.3); }
+.photos-wall-special-tag {
+  position: absolute; bottom: 6px; right: 6px;
+  font-size: 10px; color: #c47bff; font-weight: 700;
+}
+
+/* =============================================
+   CREDITS SECTION
+   ============================================= */
+.credits-section { max-width: 500px; margin: 0 auto; padding: 10px 20px 40px; }
+.credits-roll { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; }
+.credits-block {
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 16px rgba(255,126,182,.14);
+  text-align: center;
+}
+.credits-block-special { background: linear-gradient(135deg, #fff0f8, #f3e8ff); }
+.credits-label { font-size: 12px; letter-spacing: 1px; color: #c47bff; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+.credits-name { font-size: 22px; font-weight: 900; color: #ff7eb6; margin-bottom: 4px; }
+.credits-note { font-size: 13px; color: #888; }
+.credits-divider { text-align: center; color: #f0c0d8; font-size: 12px; letter-spacing: 4px; margin: 2px 0; }
+.credits-footer { text-align: center; padding-top: 16px; }
+.credits-tagline { font-size: 12px; color: #c0a0bb; margin: 3px 0; }
+
+/* =============================================
+   BONGO CAT
+   ============================================= */
+#bongoWrap {
+  position: fixed;
+  top: 70px; right: 16px;
+  width: 96px; height: 96px;
+  z-index: 9000;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+#bongoImg { width: 100%; height: 100%; object-fit: contain; }
+
+/* =============================================
+   AUTH UPGRADE BUTTON
+   ============================================= */
+.upgrade-auth-btn {
+  position: fixed;
+  bottom: 100px; right: 16px;
+  background: linear-gradient(135deg, #ff7eb6, #c47bff);
+  color: #fff;
+  border: none; border-radius: 30px;
+  padding: 10px 18px; font-size: 13px; font-weight: 700;
+  cursor: pointer; z-index: 8000;
+  box-shadow: 0 4px 14px rgba(255, 126, 182, 0.4);
+  display: flex; align-items: center; gap: 6px;
+  animation: slideInRight .4s ease;
+}
+.upgrade-auth-btn:hover { transform: scale(1.04); }
+@keyframes slideInRight {
+  from { transform: translateX(100px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.nat-modal-sm { max-width: 360px; }
+.nat-modal-sm input { box-sizing: border-box; }
+
+/* ============================================================
+   FIX 7 — Photo-wall reaction count visibility
+   reaction-btn was white text on near-transparent bg (invisible
+   on the white card background). Add dark pill bg here.
+   ============================================================ */
+.photos-wall-reactions .reaction-btn {
+  background: rgba(30, 10, 50, 0.80);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.photos-wall-reactions .reaction-btn .count {
+  color: #f9c74f;
+  opacity: 1;
+}
+.photos-wall-reactions .reaction-btn.active {
+  background: linear-gradient(135deg, rgba(247,184,200,.9), rgba(180,120,255,.9));
+}
+
+/* ============================================================
+   FIX 6 — Header upgrade: depth, particles, edge glow
+   Makes the header feel embedded in the page rather than a
+   flat card pasted on a wall.
+   ============================================================ */
+header {
+  overflow: hidden;
+}
+header::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle 120px at 10% 20%, rgba(255,160,200,.18) 0%, transparent 60%),
+    radial-gradient(circle 90px  at 85% 70%, rgba(180,120,255,.15) 0%, transparent 60%),
+    radial-gradient(circle 70px  at 60% 15%, rgba(255,200,130,.10) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: headerOrbs 10s ease-in-out infinite alternate;
+}
+@keyframes headerOrbs {
+  0%   { opacity: .6; transform: scale(1)   translateY(0px); }
+  50%  { opacity: 1;  transform: scale(1.04) translateY(-6px); }
+  100% { opacity: .7; transform: scale(.97) translateY(4px); }
+}
+/* Animated sparkle dots */
+header .header-sparkle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkleFloat var(--dur,6s) ease-in-out infinite var(--delay,0s);
+  z-index: 0;
+}
+@keyframes sparkleFloat {
+  0%,100% { transform: translateY(0)   scale(1);    opacity: .5; }
+  50%      { transform: translateY(-14px) scale(1.3); opacity: 1;  }
+}
+/* bottom border glow band */
+header {
+  border-bottom: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 8px 40px rgba(255, 120, 170, .18),
+    0 1px 0 rgba(255,255,255,.75) inset,
+    0 -1px 0 rgba(255,160,200,.35) inset;
+}
+
+/* ============================================================
+   FIX 4 — Dark mode  (.dark-mode on body)
+   ============================================================ */
+.dark-mode-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+  margin-top: 12px;
+  display: inline-block;
+}
+.dark-mode-btn:hover { background: rgba(255,255,255,0.28); transform: scale(1.08); }
+
+.header-controls-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+body.dark-mode {
+  --cream:      #1a0e2e;
+  --card-bg:    rgba(40, 20, 60, 0.85);
+  --pink:       #ff7eb6;
+  --lavender:   #c47bff;
+  --peach:      #ffa07a;
+  --mint:       #7fdbda;
+  --text:       #f0e6ff;
+  --text-light: #c0a8e0;
+  background: #1a0e2e;
+}
+
+body.dark-mode .bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(100,40,150,.5) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(60,20,120,.4) 0%, transparent 60%),
+    #12082a;
+}
+
+body.dark-mode header {
+  background: rgba(30, 12, 50, 0.72);
+  border-bottom-color: rgba(200, 100, 255, .25);
+  box-shadow:
+    0 8px 40px rgba(180, 60, 255, .18),
+    0 1px 0 rgba(255,255,255,.08) inset;
+}
+
+body.dark-mode h1 span {
+  background: linear-gradient(135deg, #ff7eb6, #c47bff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.dark-mode h1,
+body.dark-mode .subtitle,
+body.dark-mode .section-title,
+body.dark-mode .fact-text,
+body.dark-mode .hobby-name,
+body.dark-mode .hobby-desc,
+body.dark-mode .msg-name,
+body.dark-mode .msg-text {
+  color: #f0e6ff;
+}
+
+body.dark-mode .header-badge {
+  background: rgba(60, 20, 100, 0.7);
+  border-color: rgba(196, 123, 255, .45);
+  color: #d4aaff;
+}
+
+body.dark-mode .fact-card,
+body.dark-mode .react-card,
+body.dark-mode .msg-card,
+body.dark-mode .hobby-card,
+body.dark-mode .service-row,
+body.dark-mode .credits-block,
+body.dark-mode .quiz-card,
+body.dark-mode .lb-row,
+body.dark-mode .guestbook-entry {
+  background: rgba(40, 18, 65, 0.88);
+  border-color: rgba(196, 123, 255, .22);
+  color: #f0e6ff;
+  box-shadow: 0 8px 28px rgba(100, 30, 180, .22);
+}
+
+body.dark-mode .section-title {
+  background: rgba(40, 18, 65, 0.82);
+  border-left-color: #c47bff;
+  color: #d4aaff;
+  box-shadow: 0 4px 20px rgba(180, 60, 255, .15);
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+  background: rgba(50, 22, 80, 0.75) !important;
+  border-color: rgba(196, 123, 255, .35) !important;
+  color: #f0e6ff !important;
+}
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder { color: rgba(200,170,240,.5) !important; }
+
+body.dark-mode .reaction-btn {
+  background: rgba(60, 20, 100, 0.65);
+  border-color: rgba(196, 123, 255, .3);
+  color: #f0e6ff;
+}
+
+body.dark-mode .big-reaction-btn {
+  background: rgba(50, 20, 85, 0.80);
+  border-color: rgba(196, 123, 255, .3);
+  color: #f0e6ff;
+}
+body.dark-mode .big-reaction-btn .label { color: #c0a8e0; }
+body.dark-mode .big-reaction-btn:hover {
+  background: rgba(80, 30, 130, 0.90);
+  border-color: #c47bff;
+}
+
+body.dark-mode .loading-text { color: #c0a8e0; }
+body.dark-mode .fact-number   { color: #c47bff; }
+
+body.dark-mode .photos-wall-frame { background: #2a1040; }
+body.dark-mode .photos-wall-frame:hover { box-shadow: 0 12px 32px rgba(180,60,255,.35); }
+
+body.dark-mode .pw-tape { background: rgba(200,150,80,.55); }
+
+body.dark-mode #chibiBubble {
+  background: #2a1040;
+  color: #f0e6ff;
+}
+body.dark-mode #chibiBubble::after {
+  border-top-color: #2a1040;
+}
+
+body.dark-mode .dark-mode-btn {
+  background: rgba(255,230,100,0.15);
+  border-color: rgba(255,230,100,.35);
+}
+
+body.dark-mode .toast,
+body.dark-mode .undo-toast {
+  background: rgba(40, 12, 70, 0.95);
+  color: #f0e6ff;
+}
+
+body.dark-mode .hobby-placeholder { color: #c47bff; }
+body.dark-mode .sport-chip {
+  background: rgba(60, 20, 100, 0.6);
+  color: #e0c8ff;
+  border-color: rgba(196, 123, 255, .3);
+}
+
+body.dark-mode .service-btn {
+  background: linear-gradient(135deg, #c47bff, #ff7eb6);
+}
+
+body.dark-mode .msg-input-box,
+body.dark-mode .chat-input-wrap {
+  background: rgba(35, 14, 60, 0.85);
+  border-color: rgba(196, 123, 255, .25);
+}
+
+body.dark-mode .nav-tab {
+  background: rgba(40, 18, 65, 0.75);
+  color: #c0a8e0;
+  border-color: rgba(196, 123, 255, .2);
+}
+body.dark-mode .nav-tab.active {
+  background: linear-gradient(135deg, rgba(196,123,255,.3), rgba(255,126,182,.25));
+  color: #f0e6ff;
+  border-color: #c47bff;
+}
+
+body.dark-mode .credits-block-special {
+  background: linear-gradient(135deg, #2a0840, #1a0830);
+}
+body.dark-mode .credits-label { color: #c47bff; }
+body.dark-mode .credits-name  { color: #ff7eb6; }
+body.dark-mode .credits-note  { color: #a090b0; }
