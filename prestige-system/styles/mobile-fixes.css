@@ -1,0 +1,139 @@
+/*
+ * styles/mobile-fixes.css
+ *
+ * Mobile-specific overrides. Load LAST so these rules win
+ * without needing !important on every declaration.
+ *
+ * Split into two breakpoints:
+ *   ≤ 700px  — general mobile (most phones + small tablets)
+ *   ≤ 380px  — narrow phones (iPhone SE, Galaxy A series)
+ *
+ * Principle: wider layouts use the prestige-layout.css defaults.
+ * This file ONLY overrides what genuinely needs to change on small screens.
+ */
+
+/* ============================================================
+   GENERAL MOBILE  (≤ 700px)
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  /* Slightly wider left column on mobile — avatar is bigger */
+  .msg-prestige-left {
+    min-width: 60px;
+    width: 60px;
+  }
+
+  .msg-prestige-left .msg-pfp-wrap,
+  .msg-prestige-left .msg-pfp-avatar {
+    width:  54px !important;
+    height: 54px !important;
+    min-width:  54px !important;
+    min-height: 54px !important;
+  }
+
+  .prestige-gem {
+    width:  32px;
+    height: 32px;
+    min-width:  32px;
+    min-height: 32px;
+    font-size: 13px;
+  }
+
+  .msg-prestige-name {
+    font-size: 16px;
+  }
+
+  /* More breathing room between columns */
+  .msg-prestige-wrap {
+    gap: 10px;
+  }
+
+  /* Badge rows wrap sooner on mobile */
+  .msg-prestige-username {
+    gap: 5px;
+  }
+
+  /* Inline badge strip: allow wrapping on very badge-heavy rows */
+  .msg-prestige-username .user-badges-inline {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  /* Elite badge text slightly smaller */
+  .elite-badge {
+    font-size: 10px;
+    padding: 4px 9px;
+  }
+
+}
+
+/* ============================================================
+   NARROW PHONES  (≤ 380px)
+   ============================================================ */
+
+@media (max-width: 380px) {
+
+  .msg-prestige-left {
+    min-width: 48px;
+    width: 48px;
+  }
+
+  .msg-prestige-left .msg-pfp-wrap,
+  .msg-prestige-left .msg-pfp-avatar {
+    width:  46px !important;
+    height: 46px !important;
+    min-width:  46px !important;
+    min-height: 46px !important;
+  }
+
+  .prestige-gem {
+    width:  26px;
+    height: 26px;
+    font-size: 10px;
+  }
+
+  .msg-prestige-name {
+    font-size: 14px;
+  }
+
+  /* On very narrow screens, badges wrap below the username */
+  .msg-prestige-username {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* Action row wraps to two lines if needed */
+  .msg-action-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Particles are a performance risk on low-power narrow devices —
+     hide them via CSS as a secondary guard (JS gate is primary) */
+  .prestige-particles {
+    display: none;
+  }
+
+}
+
+/* ============================================================
+   TOUCH-TARGET MINIMUM
+   Apple HIG + Google Material: 44×44pt minimum touch target.
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .msg-action-row .reply-toggle-btn,
+  .msg-action-row .upvote-btn,
+  .msg-action-row .delete-btn,
+  .msg-action-row .pin-btn {
+    min-height: 36px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+}

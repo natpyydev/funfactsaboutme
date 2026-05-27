@@ -1,0 +1,1089 @@
+
+/* ================================================================
+   🌊 CINEMATIC CUTSCENE v3 — FULL VISUAL SCENES
+   ================================================================ */
+
+/* ── Root overlay ── */
+#waterCutscene {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  /* FIX: starts fully opaque — no 900ms see-through flicker */
+  opacity: 1;
+  background: #060410;
+  pointer-events: all;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+  transition: opacity 0.9s ease; /* kept for fade-OUT only */
+}
+/* .show kept for compatibility — element is already opacity:1 */
+#waterCutscene.show { opacity: 1; }
+/* cs-ending fades element out smoothly when cutscene ends/skips */
+#waterCutscene.cs-ending { opacity: 0; pointer-events: none; }
+
+/* ── Cinematic background ── */
+.cs-bg {
+  position: absolute;
+  inset: 0;
+  background: #060410;
+  transition: background 4s ease;
+}
+.cs-bg.bg-alive  { background: radial-gradient(ellipse 90% 80% at 40% 30%, rgba(30,8,75,.95) 0%, #060410 100%); }
+.cs-bg.bg-flood  { background: radial-gradient(ellipse 90% 80% at 50% 60%, rgba(0,30,70,.98) 0%, #020812 100%); }
+.cs-bg.bg-abyss  { background: radial-gradient(ellipse 80% 70% at 50% 90%, rgba(0,15,35,.99) 0%, #010408 100%); }
+
+/* ── Letterbox bars ── */
+.cs-lb {
+  position: absolute;
+  left: 0; right: 0;
+  height: 68px;
+  background: #000;
+  z-index: 20;
+  pointer-events: none;
+}
+.cs-lb-top { top: 0; }
+.cs-lb-bot { bottom: 0; }
+
+/* ── Vignette ── */
+.cs-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 38%, rgba(0,0,0,.9) 100%);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* ── Glitch frame ── */
+.cs-glitch-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,210,255,.06) 2px, rgba(0,210,255,.06) 3px);
+}
+.cs-glitch-frame.active { opacity: 0.7; }
+.cs-glitch-frame.full-static {
+  background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,180,255,.12) 1px, rgba(0,180,255,.12) 2px) !important;
+  opacity: 0.9 !important;
+}
+
+/* ── World container ── */
+.cs-world {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 8s ease;
+}
+.cs-world.zoom-deep { transform: scale(1.18) translateY(5%); }
+
+/* ================================================================
+   🖥 WEBSITE MOCK — the "nat.exe" site being destroyed
+   ================================================================ */
+
+.cs-site-wrap {
+  position: relative;
+  z-index: 5;
+  opacity: 0;
+  transform: scale(0.82) translateY(18px);
+  transition: opacity 1.4s ease, transform 1.4s cubic-bezier(.22,.8,.4,1);
+  transform-origin: center bottom;
+}
+.cs-site-wrap.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.cs-browser {
+  width: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.14);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.7),
+    0 0 40px rgba(255,126,182,.08),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  position: relative;
+  transition: filter 2s ease, border-color 2s ease, box-shadow 2s ease;
+}
+.cs-browser.glowing {
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.6),
+    0 0 50px rgba(255,126,182,.25),
+    0 0 80px rgba(196,123,255,.15),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
+.cs-browser.breaking {
+  animation: browserBreak 3.5s ease-in-out infinite;
+}
+.cs-browser.submerged {
+  filter: brightness(0.5) saturate(0.5) hue-rotate(180deg) !important;
+  border-color: rgba(0,150,200,.3) !important;
+}
+@keyframes browserBreak {
+  0%,100% { filter: none; transform: none; }
+  12%  { filter: hue-rotate(40deg) brightness(1.1); transform: translateX(-2px); }
+  25%  { filter: none; transform: none; }
+  52%  { filter: brightness(1.15) contrast(1.1); transform: translateX(1px) skewX(-1deg); }
+  65%  { filter: none; transform: none; }
+  88%  { filter: hue-rotate(-30deg) saturate(1.4); transform: translateX(-1px); }
+}
+
+/* Browser chrome */
+.cs-browser-bar {
+  height: 34px;
+  background: rgba(40,40,50,.95);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 6px;
+}
+.cs-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cs-url-bar {
+  flex: 1;
+  margin-left: 8px;
+  background: rgba(255,255,255,.07);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 10px;
+  color: rgba(255,255,255,.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Page interior */
+.cs-page {
+  background: linear-gradient(160deg, #fff0f5, #ffe4f0 60%, #fce8ff);
+  padding: 10px 12px 12px;
+  min-height: 224px;
+  position: relative;
+  overflow: hidden;
+  transition: background 4s ease;
+}
+
+.cs-pg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,126,182,.2);
+}
+.cs-pg-avatar {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg,#ffd6e8,#f7b8c8);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(255,126,182,.3);
+}
+.cs-pg-name { font-weight: 800; font-size: 12px; color: #5a2a3a; }
+.cs-pg-sub  { font-size: 10px; color: #a0708a; margin-top: 1px; }
+
+.cs-pg-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.cs-tab {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255,255,255,.6);
+  color: #8a4a66;
+  border: 1px solid rgba(255,182,200,.4);
+}
+.cs-tab.active {
+  background: linear-gradient(135deg,#ff7eb6,#f7b8c8);
+  color: #fff;
+}
+
+.cs-pg-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 7px;
+}
+.cs-pg-card {
+  background: rgba(255,255,255,.75);
+  border: 1px solid var(--c,#ffd6e8);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5a2a3a;
+  border-left: 3px solid var(--c,#ff7eb6);
+}
+.cs-pg-card.sm { font-size: 9.5px; }
+
+.cs-pg-react {
+  display: flex;
+  gap: 6px;
+  font-size: 9px;
+  color: #a0708a;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.cs-pg-msg { display: flex; flex-direction: column; gap: 4px; }
+.cs-msg-bubble {
+  background: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,182,200,.35);
+  border-radius: 10px;
+  padding: 4px 8px;
+  font-size: 9.5px;
+  color: #5a2a3a;
+}
+
+/* Alive pulse */
+.cs-page.alive { animation: pageAlivePulse 4s ease-in-out infinite; }
+@keyframes pageAlivePulse {
+  0%,100% { box-shadow: none; }
+  50%      { box-shadow: inset 0 0 30px rgba(255,126,182,.12); }
+}
+
+/* Crack SVG overlay */
+.cs-cracks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+}
+.cs-cracks svg { width: 100%; height: 100%; }
+
+/* Site water fill (floods site from bottom) */
+.cs-site-water {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 0;
+  overflow: hidden;
+  z-index: 9;
+  transition: none;
+}
+.cs-site-wave {
+  height: 14px;
+  background: linear-gradient(90deg,rgba(0,120,200,.8),rgba(0,160,240,.85),rgba(0,120,200,.8));
+  border-radius: 50% 50% 0 0 / 8px 8px 0 0;
+  animation: siteWaveWobble 1.8s ease-in-out infinite;
+}
+@keyframes siteWaveWobble {
+  0%,100% { border-radius: 60% 40% 0 0 / 10px 8px 0 0; }
+  50%      { border-radius: 40% 60% 0 0 / 8px 12px 0 0; }
+}
+.cs-site-water::after {
+  content: '';
+  display: block;
+  height: calc(100% - 14px);
+  background: linear-gradient(to bottom, rgba(0,120,200,.7), rgba(0,60,140,.9));
+}
+
+/* Glitch pixel strips */
+.cs-glitch-strips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* ================================================================
+   💧 GLOBAL WATER LEVEL
+   ================================================================ */
+.cs-water-level {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 0;
+  z-index: 6;
+  display: none;
+  overflow: hidden;
+}
+.cs-water-wave {
+  height: 56px;
+  flex-shrink: 0;
+}
+.cs-water-wave svg { width: 100%; height: 100%; display: block; }
+.cs-water-fill {
+  background: linear-gradient(to bottom, rgba(0,100,180,.82), rgba(0,40,120,.96) 60%, rgba(0,10,60,1));
+  flex: 1;
+  min-height: 200px;
+}
+.cs-water-level {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+/* ================================================================
+   🌊 EFFECTS LAYERS
+   ================================================================ */
+
+/* Bubbles */
+.cs-bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 7;
+}
+.cs-bubble {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 50%;
+  background: rgba(0,200,255,.3);
+  border: 1px solid rgba(0,230,255,.5);
+  animation: csBubUp linear infinite;
+}
+.cs-bubble.ruins-bubble { bottom: 60%; }
+@keyframes csBubUp {
+  0%   { transform: translateX(0) scale(1);   opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { transform: translateX(12px) scale(1.04); }
+  90%  { opacity: .4; }
+  100% { transform: translateX(-8px) scale(.7); opacity: 0; bottom: 110%; }
+}
+
+/* Error messages */
+.cs-errors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  overflow: hidden;
+}
+.cs-error-msg {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 10.5px;
+  color: rgba(255,80,70,.85);
+  background: rgba(10,0,0,.75);
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,50,50,.28);
+  white-space: nowrap;
+  animation: csErrFloat 6.5s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes csErrFloat {
+  0%   { transform: translateY(0); opacity: 0; }
+  8%   { opacity: 1; }
+  85%  { opacity: .75; }
+  100% { transform: translateY(-90px); opacity: 0; }
+}
+
+/* Floating debris (broken UI pieces) */
+.cs-debris {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+.cs-debris-piece {
+  position: absolute;
+  animation: csDebrisDrift ease-in-out infinite;
+}
+@keyframes csDebrisDrift {
+  0%   { transform: translateY(0) rotate(0deg); }
+  33%  { transform: translateY(-12px) rotate(4deg); }
+  66%  { transform: translateY(6px)  rotate(-3deg); }
+  100% { transform: translateY(0)    rotate(0deg); }
+}
+
+/* Data rain */
+.cs-rain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  overflow: hidden;
+  opacity: 0;
+}
+.cs-rain-char {
+  position: absolute;
+  top: -20px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  animation: csRainFall linear forwards;
+}
+@keyframes csRainFall {
+  0%   { top: -20px; opacity: 0; }
+  5%   { opacity: 1; }
+  90%  { opacity: .6; }
+  100% { top: 110%; opacity: 0; }
+}
+
+/* ================================================================
+   🔦 END-GAME ELEMENTS
+   ================================================================ */
+
+/* Flashlight */
+.cs-flashlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 2.5s ease;
+}
+
+/* Cursor element */
+.cs-cursor-el {
+  position: fixed;
+  z-index: 15;
+  color: rgba(255,255,255,.7);
+  font-size: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: left 1.2s ease, top 1.2s ease, opacity 1s ease;
+  text-shadow: 0 0 6px rgba(255,255,255,.5);
+}
+.cs-cursor-el.clicking {
+  color: rgba(255,200,200,.9);
+  transform: scale(0.75);
+}
+
+/* Shadow thing — final horror element */
+.cs-shadow-thing {
+  position: absolute;
+  bottom: 22%;
+  width: 240px;
+  height: 140px;
+  background: rgba(0,0,0,.7);
+  filter: blur(18px);
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+
+/* ================================================================
+   📝 SUBTITLE SYSTEM (bottom — secondary to visuals)
+   ================================================================ */
+.cs-sub-wrap {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 620px;
+  text-align: center;
+  z-index: 12;
+  pointer-events: none;
+  min-height: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.cs-sub {
+  opacity: 0;
+  line-height: 1.6;
+  letter-spacing: .01em;
+  /* fade-IN: 0.55s; fade-OUT happens when .show is removed — same duration */
+  transition: opacity .55s ease, transform .55s cubic-bezier(.22,.8,.4,1);
+  text-shadow: 0 1px 6px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.8);
+}
+.cs-sub span { display: block; }
+/* Adding .show fades IN, removing .show fades OUT (transition handles both) */
+.cs-sub.show { opacity: 1 !important; transform: none !important; }
+/* Use .cs-sub-exit while content is swapping (keeps element invisible but layout-stable) */
+.cs-sub.cs-sub-exit { opacity: 0 !important; pointer-events: none; }
+
+.cs-sub.cs-sub-normal {
+  font-size: clamp(14px, 2.4vw, 19px);
+  font-style: italic;
+  font-family: 'Playfair Display', Georgia, serif;
+  color: rgba(210,235,255,.85);
+  transform: translateY(10px);
+}
+.cs-sub.cs-sub-whisper {
+  font-size: clamp(12px, 1.9vw, 16px);
+  font-style: italic;
+  font-family: 'Playfair Display', Georgia, serif;
+  color: rgba(170,210,235,.65);
+  letter-spacing: .03em;
+  transform: translateY(7px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22,.8,.4,1);
+}
+.cs-sub.cs-sub-fragment {
+  font-size: clamp(18px, 3.2vw, 26px);
+  font-weight: 800;
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #fff;
+  transform: translateY(14px) scale(.97);
+  transition: opacity .4s ease, transform .4s cubic-bezier(.22,.8,.4,1);
+}
+.cs-sub.cs-sub-glitch {
+  font-size: clamp(16px, 3vw, 24px);
+  font-weight: 800;
+  font-family: 'Nunito', monospace;
+  color: #ff3355;
+  letter-spacing: .1em;
+  text-shadow:
+    0 0 18px rgba(255,30,70,.7),
+    3px 0 8px rgba(0,200,255,.45),
+    -3px 0 8px rgba(200,0,255,.4),
+    0 1px 6px rgba(0,0,0,.9);
+  transform: skewX(-3deg);
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+/* ================================================================
+   ⏱ PROGRESS & CONTROLS
+   ================================================================ */
+.cs-time-bar {
+  position: absolute;
+  bottom: 68px;
+  left: 8%; right: 8%;
+  height: 1.5px;
+  background: rgba(0,200,255,.08);
+  border-radius: 2px;
+  z-index: 14;
+  overflow: hidden;
+}
+.cs-time-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(0,80,180,.8), rgba(0,200,255,.9));
+  border-radius: 2px;
+  transition: width 1s linear;
+  box-shadow: 0 0 5px rgba(0,200,255,.5);
+}
+.cs-skip-btn {
+  position: absolute;
+  top: 76px; right: 20px;
+  z-index: 20;
+  background: rgba(0,8,20,.75);
+  border: 1px solid rgba(0,200,255,.2);
+  color: rgba(0,200,255,.58);
+  font-size: 11.5px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  letter-spacing: .08em;
+  backdrop-filter: blur(8px);
+  transition: color .15s, border-color .15s, background .15s;
+}
+.cs-skip-btn:hover { color: #7de8ff; border-color: rgba(0,200,255,.55); background: rgba(0,25,55,.8); }
+.cs-tap-hint {
+  position: absolute;
+  bottom: 100px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,12,35,.8);
+  border: 1px solid rgba(0,200,255,.2);
+  color: rgba(0,200,255,.65);
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  z-index: 20;
+  display: none;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+/* ================================================================
+   🔧 LOADER PROGRESS BAR OVERFLOW FIX
+   The animated bar overflows its container on mobile.
+   Parent needs overflow:hidden to clip the sliding animation.
+   ================================================================ */
+
+/* Clip the bar to its track */
+#loader .loader-bar-track,
+#loader .loader-progress-wrap,
+#loader .loader-bar-wrap,
+#loader [class*="bar-track"],
+#loader [class*="bar-wrap"] {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure the fill itself doesn't exceed 100% width */
+#loader .loader-bar,
+#loader .loader-fill,
+#loader .loader-progress,
+#loader [class*="loader-bar"]:not([class*="wrap"]):not([class*="track"]) {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* The loader itself should never overflow horizontally */
+#loader {
+  overflow-x: hidden !important;
+}
+
+/* If the bar uses a sliding keyframe animation, clip it at source */
+#loader .uw-loader-bar,
+#loader .loader-anim-wrap,
+#loader .xmas-loader-bar {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  border-radius: 999px !important;
+}
+
+/* Also fix if bar is position:absolute with left/right that bleeds */
+#loader .loader-bar-track {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  width: min(280px, 80%) !important;
+  margin: 0 auto !important;
+}
+
+/* ================================================================
+   ✅ DEFINITIVE LOADING BAR OVERFLOW FIX
+   Exact class names confirmed from index.html:
+   .loading-bar  = the track container
+   .loading-fill = the animated fill inside it
+   The fix: clip the track, constrain the fill.
+   ================================================================ */
+
+.loading-bar {
+  overflow: hidden !important;
+  width: min(260px, 78vw) !important;
+  max-width: min(260px, 78vw) !important;
+  position: relative !important;
+  margin: 14px auto 0 !important;
+  border-radius: 999px !important;
+  left: auto !important;
+  right: auto !important;
+}
+
+.loading-fill {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+
+/* ================================================================
+   🌊 ENHANCED CUTSCENE — new elements added by patch
+   ================================================================ */
+
+/* ── CLICK TO BEGIN SPLASH ── */
+.cs-begin-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 8, 24, 0.92);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: opacity 0.7s ease;
+}
+.cs-begin-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  user-select: none;
+  position: relative;
+}
+.cs-begin-icon {
+  font-size: 56px;
+  animation: beginBob 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(0,180,255,0.6));
+}
+.cs-begin-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #a8e8ff;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 20px rgba(0,180,255,0.5);
+}
+.cs-begin-sub {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(0,200,255,0.6);
+  letter-spacing: 0.25em;
+  text-transform: lowercase;
+  animation: pulseText 1.6s ease-in-out infinite;
+}
+.cs-begin-pulse {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,180,255,0.2);
+  animation: beginPulse 2s ease-out infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+@keyframes beginBob {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+@keyframes pulseText {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes beginPulse {
+  0%   { transform: translate(-50%,-50%) scale(0.7); opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+}
+
+/* ── FEATURE TAGS (t=0) ── */
+.cs-feature-tag {
+  position: absolute;
+  background: rgba(0,30,60,0.8);
+  border: 1px solid rgba(0,200,255,0.25);
+  border-radius: 999px;
+  color: rgba(180,230,255,0.85);
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  white-space: nowrap;
+  animation: featureTagIn 0.5s ease both;
+  z-index: 25;
+  pointer-events: none;
+}
+@keyframes featureTagIn {
+  from { opacity: 0; transform: scale(0.6) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── FLOATING MESSAGES (t=10) ── */
+.cs-float-msg {
+  position: absolute;
+  background: rgba(255,230,245,0.9);
+  border-radius: 14px 14px 14px 4px;
+  padding: 7px 13px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #884477;
+  animation: floatMsgIn 0.6s ease both;
+  transition: opacity 0.8s ease;
+  z-index: 24;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.cs-float-photo-icon {
+  position: absolute;
+  animation: floatMsgIn 0.5s ease both, gentleBob 3s ease-in-out infinite;
+  transition: opacity 0.8s ease;
+  z-index: 24;
+  pointer-events: none;
+}
+@keyframes floatMsgIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── GALLERY THUMBS (t=13) ── */
+.cs-float-gallery-thumb {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  animation: floatMsgIn 0.5s ease both;
+  transition: opacity 0.8s ease;
+  z-index: 24;
+  pointer-events: none;
+  border: 2px solid rgba(255,255,255,0.4);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* ── CODE RAIN (t=18) ── */
+.cs-code-rain {
+  position: absolute;
+  inset: 0;
+  z-index: 23;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.cs-code-line {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: rgba(100,230,180,0.75);
+  white-space: nowrap;
+  animation: codeLineDrop 0.4s ease both;
+  transition: opacity 0.6s ease;
+  background: rgba(0,12,28,0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border-left: 2px solid rgba(0,200,140,0.4);
+}
+@keyframes codeLineDrop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CORRUPTED MESSAGE BOX (t=41) ── */
+.cs-corrupted-msg {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.cs-corrupt-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(8,0,0,0.88);
+  border: 1.5px solid rgba(255,50,50,0.35);
+  border-radius: 14px;
+  padding: 16px 20px;
+  min-width: 200px;
+}
+.cs-corrupt-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255,100,100,0.75);
+  letter-spacing: 0.1em;
+}
+.cs-corrupt-bubble {
+  background: rgba(40,0,0,0.7);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  animation: corruptPulse 0.5s ease-in-out infinite alternate;
+}
+.cs-corrupt-bubble-2 { animation-delay: 0.2s; }
+.cs-corrupt-bubble-3 { animation-delay: 0.4s; }
+.cs-corrupt-text {
+  color: rgba(255,80,80,0.9);
+  animation: textShake 0.15s ease-in-out infinite;
+}
+@keyframes corruptPulse {
+  from { opacity: 0.7; background: rgba(40,0,0,0.7); }
+  to   { opacity: 1;   background: rgba(60,0,0,0.9); }
+}
+@keyframes textShake {
+  0%,100% { transform: translateX(0); }
+  33%     { transform: translateX(-1px); }
+  66%     { transform: translateX(1px); }
+}
+
+/* ── REACTION ERROR (t=44) ── */
+.cs-react-error {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.cs-react-error-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 320px;
+}
+.cs-react-err-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,30,30,0.1);
+  border: 1.5px solid rgba(255,50,50,0.35);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255,180,180,0.9);
+  transition: background 0.2s;
+}
+.cs-re-cnt {
+  font-size: 11px;
+  font-weight: 900;
+  animation: countGlitch 0.2s steps(1) infinite;
+}
+@keyframes countGlitch {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.5; transform: skewX(-4deg); }
+}
+
+/* ── CINEMATIC FLOAT ITEMS (t=64) ── */
+.cs-cinematic-floats {
+  position: absolute;
+  inset: 0;
+  z-index: 22;
+  pointer-events: none;
+}
+.cs-cinematic-item {
+  position: absolute;
+  animation: cinematicFloat 8s ease-in-out infinite both;
+  filter: blur(0.5px) brightness(0.7);
+  transition: opacity 1s ease;
+  text-shadow: 0 0 12px rgba(0,150,230,0.6);
+}
+.cs-cinematic-photo {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(100,150,200,0.3);
+  border: 2px solid rgba(0,180,255,0.3);
+  animation: cinematicFloat 9s ease-in-out infinite both;
+  filter: blur(1px) brightness(0.5) hue-rotate(180deg);
+  transition: opacity 1.2s ease;
+}
+@keyframes cinematicFloat {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  25%     { transform: translateY(-14px) rotate(2deg); }
+  50%     { transform: translateY(-6px) rotate(-1deg); }
+  75%     { transform: translateY(-20px) rotate(1.5deg); }
+}
+
+/* ── AI TERMINAL (t=76) ── */
+.cs-ai-terminal {
+  position: absolute;
+  inset: 0;
+  z-index: 27;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 5%;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.cs-ai-terminal-box {
+  width: min(280px, 78vw);
+  max-height: 200px;
+  overflow: hidden;
+  background: rgba(0,10,22,0.92);
+  border: 1px solid rgba(0,230,180,0.3);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cs-ai-line {
+  color: rgba(0,230,180,0.85);
+  line-height: 1.4;
+  animation: aiLineIn 0.25s ease both;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.cs-ai-line:nth-child(even) { color: rgba(255,140,140,0.8); }
+@keyframes aiLineIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── CREATOR SINKING (t=85) ── */
+.cs-creator-sinking {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 28;
+  pointer-events: none;
+}
+.cs-creator-silhouette {
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(0,120,200,0.5));
+  animation: creatorBob 3s ease-in-out infinite;
+}
+.cs-creator-bubble {
+  background: rgba(200,235,255,0.85);
+  border-radius: 12px 12px 12px 2px;
+  padding: 6px 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #2255aa;
+  white-space: nowrap;
+}
+.cs-creator-bubble2 { opacity: 0.7; border-radius: 12px 12px 2px 12px; }
+@keyframes creatorBob {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
+}
+
+/* ── FIX: Remove old tap hint (hidden by default now) ── */
+.cs-tap-hint { display: none !important; }
+
+/* ── RUINS BUBBLE variant ── */
+.ruins-bubble { animation-timing-function: ease-in-out; }
+
+/* ── GENTLE BOB (shared) ── */
+@keyframes gentleBob {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+/* ================================================================
+   🆕 NEW VISUAL ELEMENTS — confession fx, final whisper
+   ================================================================ */
+
+/* "c o n f e s s i o n" flash tag at t=33 */
+.cs-confession-tag {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(18px, 4vw, 32px);
+  font-style: italic;
+  color: rgba(255, 200, 230, 0);
+  letter-spacing: 0.45em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  animation: confessionFlash 2.4s ease forwards;
+  pointer-events: none;
+}
+@keyframes confessionFlash {
+  0%   { color: rgba(255,200,230,0); transform: translate(-50%,-50%) scale(0.92); }
+  15%  { color: rgba(255,200,230,0.72); transform: translate(-50%,-50%) scale(1.04); }
+  65%  { color: rgba(255,200,230,0.60); transform: translate(-50%,-50%) scale(1); }
+  100% { color: rgba(255,200,230,0); transform: translate(-50%,-50%) scale(0.96); }
+}
+
+/* Final whisper "you were warned." at t=143 */
+.cs-final-whisper {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(12px, 2.2vw, 18px);
+  color: rgba(200, 100, 100, 0);
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  animation: finalWhisperFade 3s ease forwards;
+  pointer-events: none;
+}
+@keyframes finalWhisperFade {
+  0%   { color: rgba(200,100,100,0); }
+  20%  { color: rgba(200,100,100,0.65); }
+  70%  { color: rgba(200,100,100,0.50); }
+  100% { color: rgba(200,100,100,0); }
+}

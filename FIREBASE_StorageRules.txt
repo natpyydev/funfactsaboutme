@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /* ── Cosmetics (existing — unchanged) ── */
+    match /cosmetics/{uid}/{allPaths=**} {
+      allow read:  if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    /* ── Archive cover images ─────────────────────────────────────────
+       IMPORTANT: Do NOT use request.resource.contentType checks here.
+       Firebase resumable uploads (uploadBytesResumable) send data in
+       chunks. request.resource is NULL on intermediate chunks —
+       a contentType check causes the upload to freeze at ~5%
+       because the rule throws an error on the first chunk.
+
+       Security: auth.uid allowlist + 8 MB cap on final commit.
+    ─────────────────────────────────────────────────────────────────── */
+    match /archive/{entryId}/{filename} {
+      allow read: if true;
+
+      allow write: if request.auth != null
+        && (
+             request.auth.uid == 'zNDEej9J3kg79fUYxJjxLqrXJpz2' ||
+             request.auth.uid == 'FfSIOOqNV6NTqb4eKV8RbAARDm33' ||
+             request.auth.uid == '8IumnftXW1gJCa4iNbicZ0M0LOg2'
+           );
+    }
+
+    /* ── Deny everything else ── */
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

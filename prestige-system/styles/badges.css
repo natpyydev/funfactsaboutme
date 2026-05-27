@@ -1,0 +1,135 @@
+/*
+ * styles/badges.css
+ *
+ * Visual styling for all badge systems:
+ *   - .prestige-gem tier colours
+ *   - .elite-badge variants (DEV, VIP, MYTHIC, OG, BETA)
+ *   - .badge-rarity-* glow variants from the original system
+ *   - .prestige-vip-bar glow (uses border + box-shadow)
+ *   - .mythic-glow keyframe
+ *
+ * No layout/flexbox properties here — those live in prestige-layout.css.
+ */
+
+/* ============================================================
+   GEM TIERS
+   ============================================================ */
+
+/* Gradients are applied inline via JS (setProperty + 'important')
+   to beat theme overrides. These classes only carry fallback colours
+   and the box-shadow decoration. */
+
+.prestige-gem {
+  box-shadow:
+    0 0 12px rgba(255, 255, 255, .35),
+    inset 0 2px 6px rgba(255, 255, 255, .25);
+  border: 2px solid rgba(255, 255, 255, .4);
+}
+
+.prestige-gem.tier-bronze { background-color: #cd7f32; }
+.prestige-gem.tier-silver { background-color: #8e9eab; }
+.prestige-gem.tier-gold   { background-color: #ffcc00; }
+.prestige-gem.tier-plasma { background-color: #ff00cc; }
+.prestige-gem.tier-cosmic { background-color: #00c6ff; }
+
+.prestige-gem.tier-mythic {
+  background-color: #ffcc00;
+  animation: gemMythicShift 3s linear infinite;
+}
+
+@keyframes gemMythicShift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ============================================================
+   ELITE BADGES  (DEV / VIP / MYTHIC / OG / BETA)
+   ============================================================ */
+
+.elite-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 11px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .4px;
+  color: white;
+
+  box-shadow: 0 0 12px rgba(255, 255, 255, .12);
+}
+
+.elite-badge--dev   { background: linear-gradient(135deg, #ff3d7f, #ff7b54); }
+.elite-badge--vip   { background: linear-gradient(135deg, #5ee7ff, #3f8cff); }
+.elite-badge--mythic{ background: linear-gradient(135deg, #ffcc00, #ff5e00); }
+.elite-badge--og    { background: linear-gradient(135deg, #6aff9a, #00b86b); }
+.elite-badge--beta  { background: linear-gradient(135deg, #b56cff, #7b2fff); }
+
+/* ============================================================
+   BADGE RARITY VARIANTS  (original system)
+   ============================================================ */
+
+.badge-rarity-common {
+  border: 1px solid #888;
+}
+
+.badge-rarity-rare {
+  border: 1px solid #00ffff;
+  box-shadow: 0 0 6px #00ffff;
+}
+
+.badge-rarity-epic {
+  border: 1px solid #a020f0;
+  box-shadow: 0 0 8px #a020f0;
+}
+
+.badge-rarity-legendary {
+  border: 1px solid gold;
+  box-shadow: 0 0 10px gold;
+  animation: legendaryGlow 1.5s infinite alternate;
+}
+
+.badge-rarity-mythic {
+  border: 1px solid #ff00ff;
+  box-shadow: 0 0 12px #ff00ff;
+  animation: mythicRainbow 3s linear infinite;
+}
+
+@keyframes legendaryGlow {
+  from { box-shadow: 0 0  6px gold; }
+  to   { box-shadow: 0 0 16px gold; }
+}
+
+@keyframes mythicRainbow {
+  from { filter: hue-rotate(0deg);   }
+  to   { filter: hue-rotate(360deg); }
+}
+
+/* ============================================================
+   ELITE BADGE CONTAINER
+   ============================================================ */
+
+.msg-elite-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  position: relative;
+  z-index: 5;
+}
+
+/* ============================================================
+   VIP BAR
+   ============================================================ */
+
+.prestige-vip-bar {
+  border: 2px solid rgba(255, 255, 255, .14);
+  box-shadow:
+    0 0 24px rgba(255, 215, 120, .24),
+    inset 0 0 12px rgba(255, 255, 255, .06);
+}

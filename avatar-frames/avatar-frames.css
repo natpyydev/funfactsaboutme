@@ -1,0 +1,1097 @@
+/* ============================================================
+   AVATAR FRAMES — avatar-frames.css
+   Premium animated cosmetic borders for all avatar locations.
+   Themes: Cyber Neon · Galactic Cosmic · Hellfire · Heaven Divine
+           Y2K Chrome · Forest Spirit
+   ============================================================
+   GPU CONTRACT: Every animation uses ONLY transform + opacity
+   (+ filter for glow — composited layer via will-change).
+   No width/height/top/left/margin transitions. Ever.
+   ============================================================ */
+
+
+/* ============================================================
+   1. HOST SETUP — normalize all avatar containers
+   ============================================================ */
+
+/* Any element that receives a frame becomes a positioning host */
+.nat-frame-host {
+  position: relative;
+  overflow: visible !important; /* frames bleed outside the avatar circle */
+  isolation: isolate;           /* new stacking context — frames never bleed into page */
+}
+
+/* The frame root — sits on top of the img, pointer-events off */
+.nat-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 2;
+  contain: layout style; /* performance: don't affect surrounding layout */
+}
+
+/* Every individual layer inside a frame */
+.nat-frame__layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Reduced motion: kill particles & rotations, keep glow only */
+@media (prefers-reduced-motion: reduce) {
+  .nat-frame__layer {
+    animation: none !important;
+  }
+  .nat-frame__pulse,
+  .nat-frame__glow {
+    animation: nat-glow-breathe 3s ease-in-out infinite !important;
+  }
+}
+
+
+/* ============================================================
+   2. SHARED / REUSABLE KEYFRAMES
+   ============================================================ */
+
+/* Generic ring spin — CW */
+@keyframes nat-spin-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Generic ring spin — CCW */
+@keyframes nat-spin-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+/* Slow drift spin */
+@keyframes nat-spin-slow {
+  from { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.04); }
+  to   { transform: rotate(360deg) scale(1); }
+}
+/* Pulse scale */
+@keyframes nat-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.08); opacity: 0.7; }
+}
+/* Glow breathe (filter-based — still composited) */
+@keyframes nat-glow-breathe {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1;   }
+}
+/* Shimmer sweep */
+@keyframes nat-shimmer {
+  0%   { transform: rotate(0deg);   opacity: 0.3; }
+  50%  { transform: rotate(180deg); opacity: 1;   }
+  100% { transform: rotate(360deg); opacity: 0.3; }
+}
+/* Float up + fade for particles */
+@keyframes nat-particle-rise {
+  0%   { transform: translateY(0)    scale(1);    opacity: 0.9; }
+  100% { transform: translateY(-160%) scale(0.3); opacity: 0;   }
+}
+/* Orbit — particle moving around the ring */
+@keyframes nat-orbit {
+  from { transform: rotate(0deg)   translateX(var(--orbit-r, 56%)) scale(1); }
+  to   { transform: rotate(360deg) translateX(var(--orbit-r, 56%)) scale(1); }
+}
+@keyframes nat-orbit-ccw {
+  from { transform: rotate(0deg)    translateX(var(--orbit-r, 56%)) scale(1); }
+  to   { transform: rotate(-360deg) translateX(var(--orbit-r, 56%)) scale(1); }
+}
+/* Flicker (fire/glitch) */
+@keyframes nat-flicker {
+  0%, 100% { opacity: 1;    transform: scaleY(1); }
+  20%       { opacity: 0.85; transform: scaleY(0.97); }
+  40%       { opacity: 1;    transform: scaleY(1.02); }
+  60%       { opacity: 0.9;  transform: scaleY(0.98); }
+  80%       { opacity: 1;    transform: scaleY(1.01); }
+}
+/* Scanline march */
+@keyframes nat-scanlines {
+  from { transform: translateY(0); }
+  to   { transform: translateY(8px); }
+}
+/* Halo float */
+@keyframes nat-halo-float {
+  0%, 100% { transform: translateY(0)    rotate(-3deg) scale(1);    }
+  50%       { transform: translateY(-6%) rotate(3deg)  scale(1.04); }
+}
+/* Leaf orbit variant */
+@keyframes nat-leaf-orbit {
+  from { transform: rotate(0deg)   translateX(52%) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(52%) rotate(-360deg); }
+}
+/* Wisp breathe */
+@keyframes nat-wisp {
+  0%, 100% { transform: scale(1)    rotate(0deg);   opacity: 0.5; }
+  33%       { transform: scale(1.1) rotate(120deg); opacity: 0.8; }
+  66%       { transform: scale(0.95) rotate(240deg); opacity: 0.6; }
+}
+/* Chrome glitch offset */
+@keyframes nat-glitch {
+  0%,95%,100% { transform: translate(0, 0) scaleX(1); opacity: 1; }
+  96%          { transform: translate(-3px, 0) scaleX(1.01); opacity: 0.8; }
+  97%          { transform: translate(3px, 0) scaleX(0.99); opacity: 0.9; }
+  98%          { transform: translate(0, 2px); opacity: 0.7; }
+  99%          { transform: translate(-1px, -1px); opacity: 1; }
+}
+/* Nebula swirl */
+@keyframes nat-nebula {
+  0%   { transform: rotate(0deg)   scale(1);    opacity: 0.4; }
+  33%  { transform: rotate(120deg) scale(1.06); opacity: 0.7; }
+  66%  { transform: rotate(240deg) scale(0.95); opacity: 0.5; }
+  100% { transform: rotate(360deg) scale(1);    opacity: 0.4; }
+}
+/* Star twinkle */
+@keyframes nat-twinkle {
+  0%, 100% { opacity: 0;   transform: scale(0.5); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+/* Heat wave (hellfire) */
+@keyframes nat-heat {
+  0%, 100% { transform: scaleX(1)    skewX(0deg);  opacity: 0.7; }
+  25%       { transform: scaleX(1.02) skewX(1deg);  opacity: 1;   }
+  75%       { transform: scaleX(0.98) skewX(-1deg); opacity: 0.8; }
+}
+/* Divine ray rotate */
+@keyframes nat-rays {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Ember pop */
+@keyframes nat-ember {
+  0%   { transform: translate(0, 0)       scale(1);    opacity: 1; }
+  100% { transform: translate(var(--ex, 20px), var(--ey, -40px)) scale(0); opacity: 0; }
+}
+
+
+/* ============================================================
+   3. FRAME: CYBER NEON  ⚡
+   Electric teal/cyan with rotating dual rings, corner sparks,
+   neon pulse glow, and scanning light sweep.
+   ============================================================ */
+
+.nat-frame--cyber_neon {
+  --c-primary:   #00ffe7;
+  --c-secondary: #0088ff;
+  --c-accent:    #ff00ff;
+}
+
+/* Outer spinning dashed ring */
+.nat-frame--cyber_neon .nat-frame__ring-outer {
+  inset: -14%;
+  border: 2px dashed var(--c-primary);
+  border-radius: 50%;
+  opacity: 0.9;
+  animation: nat-spin-cw 4s linear infinite;
+  filter: drop-shadow(0 0 4px var(--c-primary));
+}
+
+/* Inner solid ring — counter-spin */
+.nat-frame--cyber_neon .nat-frame__ring-inner {
+  inset: -7%;
+  border: 2px solid var(--c-secondary);
+  border-radius: 50%;
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  opacity: 0.8;
+  animation: nat-spin-ccw 2.5s linear infinite;
+  filter: drop-shadow(0 0 6px var(--c-secondary));
+}
+
+/* Neon glow corona */
+.nat-frame--cyber_neon .nat-frame__glow {
+  inset: -6%;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 8px  3px var(--c-primary),
+    0 0 18px 6px rgba(0, 255, 231, 0.35),
+    inset 0 0 8px 2px rgba(0, 255, 231, 0.15);
+  animation: nat-glow-breathe 1.8s ease-in-out infinite;
+}
+
+/* Scanning light sweep */
+.nat-frame--cyber_neon .nat-frame__scan {
+  inset: -14%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(0, 255, 231, 0.5) 3%,
+    rgba(0, 255, 231, 0.15) 8%,
+    transparent 14%
+  );
+  animation: nat-spin-cw 2s linear infinite;
+}
+
+/* Corner spark dots — 4 orbiting nodes */
+.nat-frame--cyber_neon .nat-frame__spark {
+  inset: 0;
+  --orbit-r: 60%;
+  animation: nat-orbit 3s linear infinite;
+}
+.nat-frame--cyber_neon .nat-frame__spark::before,
+.nat-frame--cyber_neon .nat-frame__spark::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 4px var(--c-accent));
+}
+.nat-frame--cyber_neon .nat-frame__spark::after {
+  animation: nat-twinkle 0.9s ease-in-out infinite;
+  animation-delay: 0.45s;
+}
+.nat-frame--cyber_neon .nat-frame__spark-2 {
+  animation-delay: -1.5s;
+  animation-duration: 3s;
+}
+.nat-frame--cyber_neon .nat-frame__spark-2::before {
+  background: var(--c-primary);
+  filter: drop-shadow(0 0 4px var(--c-primary));
+}
+
+/* Pulse ring on the border itself */
+.nat-frame--cyber_neon .nat-frame__pulse {
+  inset: -3%;
+  border: 1.5px solid var(--c-primary);
+  border-radius: 50%;
+  opacity: 0;
+  animation: nat-pulse 2s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   4. FRAME: GALACTIC COSMIC  🌌
+   Deep purple/violet with nebula swirl, star particles,
+   dual orbit rings, and cosmic shimmer.
+   ============================================================ */
+
+.nat-frame--galactic {
+  --c-primary:   #a855f7;
+  --c-secondary: #6366f1;
+  --c-star:      #e0c4ff;
+  --c-nebula:    rgba(139, 92, 246, 0.4);
+}
+
+/* Nebula cloud layer */
+.nat-frame--galactic .nat-frame__nebula {
+  inset: -20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 30% 40%,
+    rgba(168, 85, 247, 0.45) 0%,
+    rgba(99, 102, 241, 0.25) 40%,
+    transparent 70%
+  );
+  animation: nat-nebula 8s ease-in-out infinite;
+  filter: blur(2px);
+}
+
+/* Outer cosmic ring */
+.nat-frame--galactic .nat-frame__ring-outer {
+  inset: -16%;
+  border: 1.5px solid var(--c-primary);
+  border-radius: 50%;
+  border-right-color: transparent;
+  animation: nat-spin-cw 6s linear infinite;
+  filter: drop-shadow(0 0 5px var(--c-primary));
+  opacity: 0.85;
+}
+
+/* Inner orbit ring */
+.nat-frame--galactic .nat-frame__ring-inner {
+  inset: -9%;
+  border: 2px solid var(--c-secondary);
+  border-radius: 50%;
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  animation: nat-spin-ccw 4s linear infinite;
+  filter: drop-shadow(0 0 4px var(--c-secondary));
+  opacity: 0.75;
+}
+
+/* Purple glow */
+.nat-frame--galactic .nat-frame__glow {
+  inset: -8%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 10px 4px rgba(168, 85, 247, 0.6),
+    0 0 24px 8px rgba(99, 102, 241, 0.3),
+    inset 0 0 10px 3px rgba(168, 85, 247, 0.15);
+  animation: nat-glow-breathe 2.5s ease-in-out infinite;
+}
+
+/* Orbiting star dots */
+.nat-frame--galactic .nat-frame__star-1,
+.nat-frame--galactic .nat-frame__star-2,
+.nat-frame--galactic .nat-frame__star-3 {
+  inset: 0;
+  --orbit-r: 62%;
+  animation: nat-orbit 5s linear infinite;
+}
+.nat-frame--galactic .nat-frame__star-1::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--c-star);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 3px var(--c-star));
+  animation: nat-twinkle 1.2s ease-in-out infinite;
+}
+.nat-frame--galactic .nat-frame__star-2 {
+  animation-delay: -1.67s;
+  --orbit-r: 58%;
+}
+.nat-frame--galactic .nat-frame__star-2::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 3px var(--c-primary));
+  animation: nat-twinkle 0.9s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+.nat-frame--galactic .nat-frame__star-3 {
+  animation-delay: -3.33s;
+  --orbit-r: 64%;
+}
+.nat-frame--galactic .nat-frame__star-3::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #c4b5fd;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 4px #c4b5fd);
+  animation: nat-twinkle 1.5s ease-in-out infinite;
+  animation-delay: 0.7s;
+}
+
+/* Shimmer conic sweep */
+.nat-frame--galactic .nat-frame__shimmer {
+  inset: -16%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(168, 85, 247, 0.4) 4%,
+    rgba(168, 85, 247, 0.1) 10%,
+    transparent 16%
+  );
+  animation: nat-spin-slow 5s linear infinite;
+}
+
+
+/* ============================================================
+   5. FRAME: HELLFIRE  🔥
+   Deep red/orange with flame layers, heat distortion,
+   ember particles, and molten glow.
+   ============================================================ */
+
+.nat-frame--hellfire {
+  --c-core:    #ff4400;
+  --c-mid:     #ff8800;
+  --c-tip:     #ffcc00;
+  --c-smoke:   rgba(120, 30, 0, 0.35);
+}
+
+/* Flame corona — layered radials */
+.nat-frame--hellfire .nat-frame__flame-base {
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 60%,
+    rgba(255, 68, 0, 0.7) 0%,
+    rgba(255, 136, 0, 0.4) 40%,
+    rgba(255, 68, 0, 0.1) 65%,
+    transparent 75%
+  );
+  animation: nat-flicker 1.4s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+/* Outer flame ring */
+.nat-frame--hellfire .nat-frame__flame-outer {
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 65%,
+    transparent 45%,
+    rgba(255, 100, 0, 0.35) 55%,
+    rgba(255, 68, 0, 0.5) 65%,
+    rgba(200, 40, 0, 0.3) 75%,
+    transparent 85%
+  );
+  animation: nat-flicker 1.1s ease-in-out infinite;
+  animation-delay: 0.2s;
+  filter: blur(2px);
+}
+
+/* Spinning molten ring */
+.nat-frame--hellfire .nat-frame__ring-molten {
+  inset: -10%;
+  border: 2px solid var(--c-core);
+  border-radius: 50%;
+  border-top-color: var(--c-tip);
+  border-right-color: var(--c-mid);
+  border-bottom-color: transparent;
+  animation: nat-spin-cw 1.8s linear infinite;
+  filter: drop-shadow(0 0 5px var(--c-core)) drop-shadow(0 0 10px rgba(255, 68, 0, 0.5));
+  opacity: 0.9;
+}
+
+/* Ember glow */
+.nat-frame--hellfire .nat-frame__glow {
+  inset: -5%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px  4px rgba(255, 68, 0, 0.7),
+    0 0 20px 8px rgba(255, 68, 0, 0.35),
+    0 0 35px 12px rgba(200, 40, 0, 0.2),
+    inset 0 0 6px 2px rgba(255, 100, 0, 0.2);
+  animation: nat-glow-breathe 1.2s ease-in-out infinite;
+}
+
+/* Ember particles — 6 nodes */
+.nat-frame--hellfire .nat-frame__ember-1,
+.nat-frame--hellfire .nat-frame__ember-2,
+.nat-frame--hellfire .nat-frame__ember-3,
+.nat-frame--hellfire .nat-frame__ember-4,
+.nat-frame--hellfire .nat-frame__ember-5,
+.nat-frame--hellfire .nat-frame__ember-6 {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--c-tip);
+  filter: drop-shadow(0 0 3px var(--c-mid));
+  animation: nat-ember 1.5s ease-out infinite;
+}
+/* Distribute embers around bottom half */
+.nat-frame--hellfire .nat-frame__ember-1 { bottom: 5%; left: 30%;  --ex: -15px; --ey: -55px; animation-delay: 0s;    animation-duration: 1.3s; }
+.nat-frame--hellfire .nat-frame__ember-2 { bottom: 8%; left: 50%;  --ex:  5px;  --ey: -65px; animation-delay: 0.3s;  animation-duration: 1.6s; }
+.nat-frame--hellfire .nat-frame__ember-3 { bottom: 5%; left: 70%;  --ex:  18px; --ey: -50px; animation-delay: 0.7s;  animation-duration: 1.2s; }
+.nat-frame--hellfire .nat-frame__ember-4 { bottom: 12%; left: 20%; --ex: -20px; --ey: -45px; animation-delay: 1.0s;  animation-duration: 1.5s; }
+.nat-frame--hellfire .nat-frame__ember-5 { bottom: 10%; left: 60%; --ex:  12px; --ey: -60px; animation-delay: 0.5s;  animation-duration: 1.8s; }
+.nat-frame--hellfire .nat-frame__ember-6 { bottom: 6%;  left: 42%; --ex: -8px;  --ey: -70px; animation-delay: 1.2s;  animation-duration: 1.4s; }
+
+/* Heat shimmer conic */
+.nat-frame--hellfire .nat-frame__heat {
+  inset: -18%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 200deg,
+    transparent 0%,
+    rgba(255, 100, 0, 0.3) 5%,
+    rgba(255, 200, 0, 0.15) 10%,
+    transparent 18%
+  );
+  animation: nat-spin-cw 1.5s linear infinite;
+}
+
+
+/* ============================================================
+   6. FRAME: HEAVEN DIVINE  ✨
+   Gold/white with floating halo, divine light rays,
+   feather particles, and soft radiant glow.
+   ============================================================ */
+
+.nat-frame--heaven_divine {
+  --c-gold:   #ffd700;
+  --c-light:  #fffbe6;
+  --c-ray:    rgba(255, 245, 180, 0.6);
+  --c-soft:   rgba(255, 235, 150, 0.3);
+}
+
+/* Divine light ray burst */
+.nat-frame--heaven_divine .nat-frame__rays {
+  inset: -25%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,   rgba(255, 245, 180, 0.5) 6deg,   transparent 12deg,
+    transparent 30deg,  rgba(255, 245, 180, 0.4) 36deg,  transparent 42deg,
+    transparent 60deg,  rgba(255, 245, 180, 0.5) 66deg,  transparent 72deg,
+    transparent 90deg,  rgba(255, 245, 180, 0.35) 96deg, transparent 102deg,
+    transparent 120deg, rgba(255, 245, 180, 0.5) 126deg, transparent 132deg,
+    transparent 150deg, rgba(255, 245, 180, 0.4) 156deg, transparent 162deg,
+    transparent 180deg, rgba(255, 245, 180, 0.5) 186deg, transparent 192deg,
+    transparent 210deg, rgba(255, 245, 180, 0.35) 216deg,transparent 222deg,
+    transparent 240deg, rgba(255, 245, 180, 0.5) 246deg, transparent 252deg,
+    transparent 270deg, rgba(255, 245, 180, 0.4) 276deg, transparent 282deg,
+    transparent 300deg, rgba(255, 245, 180, 0.5) 306deg, transparent 312deg,
+    transparent 330deg, rgba(255, 245, 180, 0.35) 336deg,transparent 342deg
+  );
+  animation: nat-rays 12s linear infinite;
+  filter: blur(0.5px);
+  opacity: 0.85;
+}
+
+/* Floating halo ring */
+.nat-frame--heaven_divine .nat-frame__halo {
+  inset: -20%;
+  border: 2px solid var(--c-gold);
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: nat-halo-float 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--c-gold)) drop-shadow(0 0 12px rgba(255, 215, 0, 0.5));
+}
+
+/* Inner golden ring */
+.nat-frame--heaven_divine .nat-frame__ring-inner {
+  inset: -8%;
+  border: 1.5px solid rgba(255, 215, 0, 0.6);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: nat-spin-ccw 8s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
+}
+
+/* Radiant glow corona */
+.nat-frame--heaven_divine .nat-frame__glow {
+  inset: -6%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px  4px rgba(255, 215, 0, 0.5),
+    0 0 18px 6px rgba(255, 235, 150, 0.35),
+    0 0 32px 10px rgba(255, 245, 200, 0.2),
+    inset 0 0 8px 3px rgba(255, 235, 150, 0.2);
+  animation: nat-glow-breathe 2.8s ease-in-out infinite;
+}
+
+/* Orbiting light orbs */
+.nat-frame--heaven_divine .nat-frame__orb-1,
+.nat-frame--heaven_divine .nat-frame__orb-2,
+.nat-frame--heaven_divine .nat-frame__orb-3 {
+  inset: 0;
+  --orbit-r: 60%;
+  animation: nat-orbit 6s linear infinite;
+}
+.nat-frame--heaven_divine .nat-frame__orb-1::before,
+.nat-frame--heaven_divine .nat-frame__orb-2::before,
+.nat-frame--heaven_divine .nat-frame__orb-3::before {
+  content: '✦';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  color: var(--c-gold);
+  filter: drop-shadow(0 0 4px var(--c-gold));
+  animation: nat-twinkle 1.5s ease-in-out infinite;
+}
+.nat-frame--heaven_divine .nat-frame__orb-2 { animation-delay: -2s;  }
+.nat-frame--heaven_divine .nat-frame__orb-2::before { animation-delay: 0.5s; font-size: 6px; }
+.nat-frame--heaven_divine .nat-frame__orb-3 { animation-delay: -4s;  }
+.nat-frame--heaven_divine .nat-frame__orb-3::before { animation-delay: 1s; }
+
+/* Soft pulse on border */
+.nat-frame--heaven_divine .nat-frame__pulse {
+  inset: -4%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  opacity: 0;
+  animation: nat-pulse 3s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   7. FRAME: Y2K CHROME  💿
+   Silver/chrome with glitch pulses, spinning metallic ring,
+   scanline overlay, and holographic rainbow sheen.
+   ============================================================ */
+
+.nat-frame--y2k_chrome {
+  --c-chrome:  #c8c8d4;
+  --c-shine:   #e8e8f0;
+  --c-shadow:  #6060a0;
+  --c-glitch1: #ff0080;
+  --c-glitch2: #00ffff;
+}
+
+/* Chrome metallic ring */
+.nat-frame--y2k_chrome .nat-frame__ring-chrome {
+  inset: -12%;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(var(--c-chrome), var(--c-chrome)) padding-box,
+    conic-gradient(
+      #a0a0b8 0deg,
+      #f0f0ff 45deg,
+      #888899 90deg,
+      #e0e0f0 135deg,
+      #a0a0b8 180deg,
+      #f0f0ff 225deg,
+      #888899 270deg,
+      #e0e0f0 315deg,
+      #a0a0b8 360deg
+    ) border-box;
+  animation: nat-spin-cw 3s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(192, 192, 220, 0.8));
+}
+
+/* Holographic rainbow sheen */
+.nat-frame--y2k_chrome .nat-frame__holo {
+  inset: -12%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 0, 128, 0.2),
+    rgba(255, 165, 0, 0.2),
+    rgba(255, 255, 0, 0.2),
+    rgba(0, 255, 128, 0.2),
+    rgba(0, 200, 255, 0.2),
+    rgba(128, 0, 255, 0.2),
+    rgba(255, 0, 128, 0.2)
+  );
+  animation: nat-spin-ccw 4s linear infinite;
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+/* Scanlines */
+.nat-frame--y2k_chrome .nat-frame__scanlines {
+  inset: -14%;
+  border-radius: 50%;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(255, 255, 255, 0.04) 3px,
+    rgba(255, 255, 255, 0.04) 4px
+  );
+  animation: nat-scanlines 0.5s steps(1) infinite;
+  pointer-events: none;
+}
+
+/* Glitch pulse overlay */
+.nat-frame--y2k_chrome .nat-frame__glitch {
+  inset: -12%;
+  border-radius: 50%;
+  border: 1px solid var(--c-glitch1);
+  opacity: 0;
+  animation: nat-glitch 5s steps(1) infinite;
+  box-shadow: 0 0 8px var(--c-glitch1), inset 0 0 6px var(--c-glitch1);
+}
+.nat-frame--y2k_chrome .nat-frame__glitch-b {
+  inset: -12%;
+  border-radius: 50%;
+  border: 1px solid var(--c-glitch2);
+  opacity: 0;
+  animation: nat-glitch 5s steps(1) infinite;
+  animation-delay: 0.05s;
+  box-shadow: 0 0 8px var(--c-glitch2), inset 0 0 6px var(--c-glitch2);
+}
+
+/* Silver glow */
+.nat-frame--y2k_chrome .nat-frame__glow {
+  inset: -6%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px  3px rgba(200, 200, 220, 0.6),
+    0 0 14px 5px rgba(160, 160, 200, 0.3);
+  animation: nat-shimmer 3s linear infinite;
+}
+
+
+/* ============================================================
+   8. FRAME: FOREST SPIRIT  🌿
+   Deep emerald with orbiting leaves, wisp glow,
+   organic vine ring, and mossy particle rise.
+   ============================================================ */
+
+.nat-frame--forest_spirit {
+  --c-leaf:    #22c55e;
+  --c-deep:    #15803d;
+  --c-wisp:    #86efac;
+  --c-glow:    rgba(34, 197, 94, 0.4);
+  --c-moss:    rgba(20, 120, 50, 0.5);
+}
+
+/* Vine organic ring — dashed */
+.nat-frame--forest_spirit .nat-frame__ring-vine {
+  inset: -14%;
+  border-radius: 50%;
+  border: 2px dashed var(--c-deep);
+  opacity: 0.8;
+  animation: nat-spin-slow 7s linear infinite;
+  filter: drop-shadow(0 0 4px var(--c-leaf));
+}
+
+/* Inner wisp ring */
+.nat-frame--forest_spirit .nat-frame__ring-wisp {
+  inset: -7%;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-leaf);
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  animation: nat-spin-ccw 4s linear infinite;
+  filter: drop-shadow(0 0 5px var(--c-leaf));
+  opacity: 0.75;
+}
+
+/* Wisp glow corona */
+.nat-frame--forest_spirit .nat-frame__glow {
+  inset: -6%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px  3px rgba(34, 197, 94, 0.6),
+    0 0 18px 6px rgba(34, 197, 94, 0.3),
+    inset 0 0 8px 2px rgba(34, 197, 94, 0.15);
+  animation: nat-wisp 3s ease-in-out infinite;
+}
+
+/* Orbiting leaf sprites */
+.nat-frame--forest_spirit .nat-frame__leaf-1,
+.nat-frame--forest_spirit .nat-frame__leaf-2,
+.nat-frame--forest_spirit .nat-frame__leaf-3,
+.nat-frame--forest_spirit .nat-frame__leaf-4 {
+  inset: 0;
+  animation: nat-leaf-orbit 5s linear infinite;
+}
+.nat-frame--forest_spirit .nat-frame__leaf-1::before,
+.nat-frame--forest_spirit .nat-frame__leaf-2::before,
+.nat-frame--forest_spirit .nat-frame__leaf-3::before,
+.nat-frame--forest_spirit .nat-frame__leaf-4::before {
+  content: '🍃';
+  position: absolute;
+  top: 50%; left: 50%;
+  font-size: 9px;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 3px var(--c-leaf));
+  animation: nat-twinkle 2s ease-in-out infinite;
+}
+.nat-frame--forest_spirit .nat-frame__leaf-2 { animation-delay: -1.25s; }
+.nat-frame--forest_spirit .nat-frame__leaf-2::before { content: '✿'; color: var(--c-wisp); font-size: 8px; animation-delay: 0.5s; }
+.nat-frame--forest_spirit .nat-frame__leaf-3 { animation-delay: -2.5s;  }
+.nat-frame--forest_spirit .nat-frame__leaf-3::before { font-size: 8px; animation-delay: 1s; }
+.nat-frame--forest_spirit .nat-frame__leaf-4 { animation-delay: -3.75s; }
+.nat-frame--forest_spirit .nat-frame__leaf-4::before { content: '✿'; color: #bbf7d0; font-size: 7px; animation-delay: 1.5s; }
+
+/* Rising wisp particles */
+.nat-frame--forest_spirit .nat-frame__wisp-1,
+.nat-frame--forest_spirit .nat-frame__wisp-2,
+.nat-frame--forest_spirit .nat-frame__wisp-3 {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--c-wisp);
+  filter: blur(1px) drop-shadow(0 0 3px var(--c-leaf));
+  animation: nat-particle-rise 2.5s ease-out infinite;
+}
+.nat-frame--forest_spirit .nat-frame__wisp-1 { bottom: 10%; left: 25%;  animation-delay: 0s;    animation-duration: 2.2s; }
+.nat-frame--forest_spirit .nat-frame__wisp-2 { bottom: 8%;  left: 55%;  animation-delay: 0.8s; animation-duration: 2.8s; }
+.nat-frame--forest_spirit .nat-frame__wisp-3 { bottom: 12%; left: 72%;  animation-delay: 1.5s; animation-duration: 2.4s; }
+
+/* Moss pulse ring */
+.nat-frame--forest_spirit .nat-frame__pulse {
+  inset: -3%;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-leaf);
+  opacity: 0;
+  animation: nat-pulse 2.5s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   9. SIZE OVERRIDES
+   All frame layers use % so they auto-scale.
+   These just ensure the host container is positioned correctly
+   per avatar type.
+   ============================================================ */
+
+/* Chat message avatars — 38px base */
+.msg-pfp-avatar.nat-frame-host {
+  overflow: visible !important;
+}
+
+/* Leaderboard avatars */
+.lb-pfp-avatar.nat-frame-host {
+  overflow: visible !important;
+  position: relative;
+}
+
+/* Profile page pfp — 104px, owns extra outer space already */
+.prof-pfp.nat-frame-host,
+#profPfp.nat-frame-host {
+  overflow: visible !important;
+}
+
+/* ============================================================
+   10. TIER BADGE — small indicator shown below frame
+   Tiny "LEGENDARY" / "EPIC" label that appears on equipped
+   frames in inventory / profile view.
+   ============================================================ */
+
+
+/* ============================================================
+   11. MOBILE — tighten glow radius on small screens
+   ============================================================ */
+@media (max-width: 480px) {
+  .nat-frame--cyber_neon .nat-frame__glow {
+    box-shadow:
+      0 0 5px 2px var(--c-primary),
+      0 0 10px 4px rgba(0, 255, 231, 0.3);
+  }
+  .nat-frame--galactic .nat-frame__glow {
+    box-shadow:
+      0 0 6px 3px rgba(168, 85, 247, 0.5),
+      0 0 14px 5px rgba(99, 102, 241, 0.25);
+  }
+  .nat-frame--hellfire .nat-frame__glow {
+    box-shadow:
+      0 0 5px 3px rgba(255, 68, 0, 0.6),
+      0 0 12px 5px rgba(255, 68, 0, 0.3);
+  }
+  .nat-frame--heaven_divine .nat-frame__glow {
+    box-shadow:
+      0 0 5px 3px rgba(255, 215, 0, 0.4),
+      0 0 12px 4px rgba(255, 235, 150, 0.25);
+  }
+  .nat-frame--y2k_chrome .nat-frame__glow {
+    box-shadow:
+      0 0 4px 2px rgba(200, 200, 220, 0.5);
+  }
+  .nat-frame--forest_spirit .nat-frame__glow {
+    box-shadow:
+      0 0 5px 2px rgba(34, 197, 94, 0.5),
+      0 0 10px 4px rgba(34, 197, 94, 0.25);
+  }
+
+  /* Reduce ember count — hide half on mobile */
+  .nat-frame--hellfire .nat-frame__ember-4,
+  .nat-frame--hellfire .nat-frame__ember-5,
+  .nat-frame--hellfire .nat-frame__ember-6 {
+    display: none;
+  }
+  /* Reduce leaf count on mobile */
+  .nat-frame--forest_spirit .nat-frame__leaf-3,
+  .nat-frame--forest_spirit .nat-frame__leaf-4 {
+    display: none;
+  }
+}
+/* FIX INVISIBLE FRAME UI OVERLAY */
+
+.nfu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: none;
+  opacity: 0;
+
+  pointer-events: none !important;
+
+  align-items: flex-end;
+  justify-content: center;
+
+  background: rgba(8, 4, 20, 0.88);
+  backdrop-filter: blur(10px);
+
+  transition: opacity .28s ease;
+}
+
+.nfu-backdrop.nfu-visible {
+  opacity: 1;
+  pointer-events: auto !important;
+}
+/* ============================================================
+   DEVELOPER FRAME — Holographic RGB Cyber Divine
+   Layers: holo-ring, rgb-ring, shine, particle-1…6,
+           glow-pulse, glitch-a, glitch-b
+   ============================================================ */
+
+/* ── Host Setup ── */
+.nat-frame--developer {
+  position: absolute;
+  inset: -6px;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 5;
+}
+
+/* ── Outer holographic rotating ring ── */
+.nat-frame--developer .nat-frame__holo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #ff00cc, #7c00ff, #00cfff, #00ffaa,
+    #ffb800, #ff0055, #ff00cc
+  );
+  mask: radial-gradient(circle, transparent 62%, black 63%, black 73%, transparent 74%);
+  -webkit-mask: radial-gradient(circle, transparent 62%, black 63%, black 73%, transparent 74%);
+  animation: devRingRotate 4s linear infinite;
+  filter: blur(0.5px) brightness(1.4);
+}
+
+/* ── Inner pulsing neon ring ── */
+.nat-frame--developer .nat-frame__rgb-ring {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 180deg,
+    #00cfff, #bf6fff, #ff00cc, #ff6600,
+    #00ffaa, #00cfff
+  );
+  mask: radial-gradient(circle, transparent 66%, black 67%, black 76%, transparent 77%);
+  -webkit-mask: radial-gradient(circle, transparent 66%, black 67%, black 76%, transparent 77%);
+  animation: devRingRotate 6s linear infinite reverse;
+  filter: blur(0.5px) brightness(1.2);
+  opacity: 0.75;
+}
+
+/* ── Holographic shine sweep ── */
+.nat-frame--developer .nat-frame__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255,255,255,0.45) 30deg,
+    transparent 60deg,
+    transparent 360deg
+  );
+  animation: devRingRotate 2.5s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* ── Orbiting particles ── */
+.nat-frame--developer [class*="nat-frame__particle-"] {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin: -2.5px 0 0 -2.5px;
+  filter: blur(1px);
+}
+
+.nat-frame--developer .nat-frame__particle-1 {
+  background: #ff00cc;
+  box-shadow: 0 0 6px #ff00cc, 0 0 12px #ff00cc;
+  animation: devOrbit 3s linear infinite;
+  transform-origin: 0 0;
+}
+.nat-frame--developer .nat-frame__particle-2 {
+  background: #00cfff;
+  box-shadow: 0 0 6px #00cfff, 0 0 12px #00cfff;
+  animation: devOrbit 3s linear infinite;
+  animation-delay: -0.5s;
+}
+.nat-frame--developer .nat-frame__particle-3 {
+  background: #7c00ff;
+  box-shadow: 0 0 6px #7c00ff, 0 0 12px #7c00ff;
+  animation: devOrbit 3s linear infinite;
+  animation-delay: -1s;
+}
+.nat-frame--developer .nat-frame__particle-4 {
+  background: #00ffaa;
+  box-shadow: 0 0 6px #00ffaa, 0 0 12px #00ffaa;
+  animation: devOrbit 3s linear infinite;
+  animation-delay: -1.5s;
+}
+.nat-frame--developer .nat-frame__particle-5 {
+  background: #ffb800;
+  box-shadow: 0 0 6px #ffb800, 0 0 12px #ffb800;
+  animation: devOrbit 3s linear infinite;
+  animation-delay: -2s;
+}
+.nat-frame--developer .nat-frame__particle-6 {
+  background: #ff0055;
+  box-shadow: 0 0 6px #ff0055, 0 0 12px #ff0055;
+  animation: devOrbit 3s linear infinite;
+  animation-delay: -2.5s;
+}
+
+/* ── Glow pulse aura ── */
+.nat-frame--developer .nat-frame__glow-pulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 10px 3px rgba(160, 80, 255, 0.5),
+    0 0 20px 6px rgba(0, 207, 255, 0.3),
+    0 0 35px 10px rgba(255, 0, 200, 0.15);
+  animation: devGlowPulse 2.8s ease-in-out infinite;
+}
+
+/* ── Glitch flickers ── */
+.nat-frame--developer .nat-frame__glitch-a,
+.nat-frame--developer .nat-frame__glitch-b {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.nat-frame--developer .nat-frame__glitch-a {
+  background: conic-gradient(from 90deg, #ff00cc 0deg, transparent 20deg, transparent 360deg);
+  animation: devGlitchFlick 4s steps(1) infinite;
+}
+.nat-frame--developer .nat-frame__glitch-b {
+  background: conic-gradient(from 270deg, #00cfff 0deg, transparent 15deg, transparent 360deg);
+  animation: devGlitchFlick 4s steps(1) infinite;
+  animation-delay: -2s;
+}
+
+/* ── Keyframes ── */
+@keyframes devRingRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes devOrbit {
+  0%   { transform: rotate(0deg)   translateX(38px) scale(1); }
+  25%  { transform: rotate(90deg)  translateX(38px) scale(1.3); }
+  50%  { transform: rotate(180deg) translateX(38px) scale(1); }
+  75%  { transform: rotate(270deg) translateX(38px) scale(0.7); }
+  100% { transform: rotate(360deg) translateX(38px) scale(1); }
+}
+
+@keyframes devGlowPulse {
+  0%,100% { opacity: 0.7; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.04); }
+}
+
+@keyframes devGlitchFlick {
+  0%,94%  { opacity: 0; transform: rotate(0deg); }
+  95%     { opacity: 0.7; transform: rotate(-5deg) scaleX(1.05); }
+  96%     { opacity: 0;   transform: rotate(3deg); }
+  97%     { opacity: 0.5; transform: rotate(0deg) scaleX(0.97); }
+  100%    { opacity: 0; }
+}
+
+/* ── Mobile: scale down orbit radius ── */
+@media (max-width: 480px) {
+  .nat-frame--developer [class*="nat-frame__particle-"] {
+    width: 4px;
+    height: 4px;
+  }
+  @keyframes devOrbit {
+    0%   { transform: rotate(0deg)   translateX(28px) scale(1); }
+    25%  { transform: rotate(90deg)  translateX(28px) scale(1.3); }
+    50%  { transform: rotate(180deg) translateX(28px) scale(1); }
+    75%  { transform: rotate(270deg) translateX(28px) scale(0.7); }
+    100% { transform: rotate(360deg) translateX(28px) scale(1); }
+  }
+}

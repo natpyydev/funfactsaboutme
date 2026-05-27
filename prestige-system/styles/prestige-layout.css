@@ -1,0 +1,254 @@
+/*
+ * styles/prestige-layout.css
+ *
+ * STRUCTURAL layout rules only.
+ * No colours, gradients, animations, or shadows here.
+ * Those live in badges.css, particles.css, and the theme files.
+ *
+ * Load order: this file FIRST, then badges.css, particles.css,
+ * then mobile-fixes.css LAST (highest specificity wins on mobile).
+ *
+ * Uses CSS custom properties from layout.js/injectLayoutTokens()
+ * so JS and CSS share the same dimension values.
+ */
+
+/* ============================================================
+   OUTER WRAP
+   ============================================================ */
+
+.msg-prestige-wrap {
+  display: flex;
+  gap: var(--prestige-wrap-gap, 8px);
+  align-items: flex-start;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   LEFT COLUMN  (avatar + gem)
+   ============================================================ */
+
+.msg-prestige-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  width: var(--prestige-left-col-width, 52px);
+  min-width: var(--prestige-left-col-width, 52px);
+
+  flex-shrink: 0;   /* left column never compresses */
+  position: relative;
+  z-index: 2;
+}
+
+.msg-prestige-left .msg-pfp-wrap,
+.msg-prestige-left .msg-pfp-avatar {
+  width: var(--prestige-avatar-size, 48px) !important;
+  height: var(--prestige-avatar-size, 48px) !important;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   RIGHT COLUMN  (all content)
+   ============================================================ */
+
+.msg-prestige-right {
+  flex: 1 1 0;     /* grow to fill, base 0 prevents overflow */
+  min-width: 0;    /* critical: allows flex children to shrink below content size */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ============================================================
+   USERNAME ROW
+   Rules here override the global .msg-sender ellipsis traps
+   that patch-four-fixes.css sets with !important.
+   ============================================================ */
+
+.msg-prestige-username {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;           /* badges wrap onto next line if needed */
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+/* The username text — built fresh, never cloned from .msg-sender */
+.msg-prestige-name {
+  font-weight: 800;
+  font-size: var(--prestige-username-font, 18px);
+  line-height: 1.2;
+
+  /* Explicitly undo any global truncation rules */
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: break-word;
+
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Crown icon — never shrink */
+.msg-prestige-username [class*="crown"] {
+  flex-shrink: 0;
+  overflow: visible;
+  display: inline-flex;
+}
+
+/* Inline badge strip */
+.msg-prestige-username .user-badges-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* +N overflow indicator */
+.msg-prestige-username .badge-more-indicator {
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Time stamp — pushed to the right */
+.msg-prestige-username .msg-time {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.82em;
+  opacity: 0.65;
+  /* Undo any global overflow rules */
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/*
+ * Safety net: if .msg-sender ever ends up inside this row
+ * (e.g. future code regression), un-truncate it immediately.
+ */
+.msg-prestige-username .msg-sender {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  max-width: none !important;
+}
+
+/* ============================================================
+   TITLE / LEGEND
+   ============================================================ */
+
+.msg-prestige-title {
+  font-size: 13px;
+  opacity: 0.82;
+  font-style: italic;
+  margin-top: -2px;
+}
+
+.prestige-legend {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffd86b;
+  text-shadow: 0 0 10px rgba(255, 216, 107, .35);
+}
+
+/* ============================================================
+   MESSAGE TEXT
+   ============================================================ */
+
+.msg-prestige-right .msg-text {
+  position: relative;
+  z-index: 2;
+  line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: anywhere;  /* handles CJK + long URLs */
+}
+
+/* ============================================================
+   REACTIONS + ACTION BUTTONS
+   Buttons are moved (not cloned) so listeners survive.
+   Position:relative so they render in normal flow inside rightCol.
+   ============================================================ */
+
+.msg-prestige-right .msg-reactions-row,
+.msg-prestige-right .reply-toggle-btn,
+.msg-prestige-right .upvote-btn,
+.msg-prestige-right .delete-btn,
+.msg-prestige-right .pin-btn,
+.msg-prestige-right .msg-reply-area {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2;
+}
+
+.msg-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.msg-action-row .delete-btn,
+.msg-action-row .pin-btn,
+.msg-action-row .upvote-btn,
+.msg-action-row .reply-toggle-btn {
+  position: relative !important;
+  inset: auto !important;
+  margin: 0 !important;
+}
+
+/* ============================================================
+   GEM  (structure only — colour in badges.css)
+   ============================================================ */
+
+.prestige-gem {
+  width: var(--prestige-gem-size, 28px);
+  height: var(--prestige-gem-size, 28px);
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: var(--prestige-gem-font, 11px);
+  font-weight: 900;
+  color: white;
+
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   VIP BAR  (absolutely positioned, behind content)
+   ============================================================ */
+
+.prestige-vip-bar {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================
+   MYTHIC GLOW  (on the .message-bubble itself)
+   ============================================================ */
+
+.message-bubble.mythic-glow {
+  box-shadow:
+    0 0 30px rgba(255, 170, 0, .35),
+    0 0 60px rgba(255, 80,  0, .15);
+}

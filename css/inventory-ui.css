@@ -1,0 +1,633 @@
+/* ============================================================
+   INVENTORY UI — inventory-ui.css
+   Mobile-first cosmetic inventory panel.
+   Tabs: Frames · Badges · Titles
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   LAYER 0 — OVERLAY BACKDROP
+---------------------------------------------------------- */
+.nat-inv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9700;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+}
+.nat-inv-overlay.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ----------------------------------------------------------
+   LAYER 1 — PANEL SHEET
+   Slides up from bottom on mobile, centered modal on desktop.
+---------------------------------------------------------- */
+.nat-inv-panel {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 9701;
+  background: #0f0f18;
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+  overflow: hidden;
+}
+.nat-inv-panel.is-open {
+  transform: translateY(0);
+}
+
+/* Desktop: centered card */
+@media (min-width: 600px) {
+  .nat-inv-panel {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    transform: translate(-50%, -40%) scale(0.96);
+    width: min(560px, 96vw);
+    max-height: 82dvh;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.1);
+    opacity: 0;
+    transition: transform 320ms cubic-bezier(0.22,1,0.36,1),
+                opacity 260ms ease;
+  }
+  .nat-inv-panel.is-open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------------------------
+   DRAG HANDLE (mobile only)
+---------------------------------------------------------- */
+.nat-inv-handle {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 6px;
+}
+.nat-inv-handle-bar {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.18);
+}
+@media (min-width: 600px) {
+  .nat-inv-handle { display: none; }
+}
+
+/* ----------------------------------------------------------
+   HEADER
+---------------------------------------------------------- */
+.nat-inv-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nat-inv-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8e8f0;
+  letter-spacing: 0.4px;
+}
+.nat-inv-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.6);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 160ms, color 160ms;
+  flex-shrink: 0;
+}
+.nat-inv-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+/* ----------------------------------------------------------
+   TABS
+---------------------------------------------------------- */
+.nat-inv-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0;
+  padding: 8px 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nat-inv-tab {
+  flex: 1;
+  padding: 9px 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.38);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  position: relative;
+  transition: color 180ms;
+  text-align: center;
+}
+.nat-inv-tab::after {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%; bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background 200ms, opacity 200ms;
+  opacity: 0;
+}
+.nat-inv-tab.active {
+  color: #fff;
+}
+.nat-inv-tab.active::after {
+  background: var(--tab-accent, #a78bfa);
+  opacity: 1;
+}
+.nat-inv-tab[data-tab="frames"].active  { --tab-accent: #00ffe7; }
+.nat-inv-tab[data-tab="badges"].active  { --tab-accent: #ffb800; }
+.nat-inv-tab[data-tab="titles"].active  { --tab-accent: #f472b6; }
+
+/* Tab count badges */
+.nat-inv-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ----------------------------------------------------------
+   SCROLL CONTAINER
+---------------------------------------------------------- */
+.nat-inv-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 12px 24px;
+}
+.nat-inv-body::-webkit-scrollbar { width: 4px; }
+.nat-inv-body::-webkit-scrollbar-track { background: transparent; }
+.nat-inv-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* Tab panels */
+.nat-inv-pane { display: none; }
+.nat-inv-pane.active { display: block; }
+
+/* ----------------------------------------------------------
+   SECTION LABELS
+---------------------------------------------------------- */
+.nat-inv-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  padding: 8px 4px 6px;
+  margin-top: 4px;
+}
+
+/* ----------------------------------------------------------
+   FRAME GRID
+---------------------------------------------------------- */
+.nat-inv-frame-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 420px) {
+  .nat-inv-frame-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.nat-inv-frame-card {
+  position: relative;
+  border-radius: 14px;
+  padding: 12px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: var(--card-bg, rgba(255,255,255,0.04));
+  border: 1.5px solid var(--card-border, rgba(255,255,255,0.08));
+  transition: transform 140ms, box-shadow 140ms, border-color 140ms;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.nat-inv-frame-card:active { transform: scale(0.96); }
+.nat-inv-frame-card.equipped {
+  border-color: var(--card-border, rgba(255,255,255,0.4));
+  box-shadow: var(--card-glow, 0 0 16px rgba(255,255,255,0.15));
+}
+.nat-inv-frame-card.locked {
+  opacity: 0.42;
+  cursor: default;
+  filter: grayscale(0.4);
+}
+
+/* Frame preview wrapper */
+.nat-inv-frame-preview {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: visible;
+}
+.nat-inv-frame-preview img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Frame label */
+.nat-inv-frame-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* Rarity badge on cards */
+.nat-inv-rarity-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--rarity-color);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+/* Equipped checkmark */
+.nat-inv-equipped-mark {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #fff;
+  font-size: 11px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.5);
+}
+.nat-inv-frame-card.equipped .nat-inv-equipped-mark {
+  display: flex;
+}
+
+/* Lock icon */
+.nat-inv-lock-icon {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+.nat-inv-frame-card.locked .nat-inv-lock-icon { display: flex; }
+
+/* Unequip button on equipped card */
+.nat-inv-unequip-btn {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: background 140ms, color 140ms;
+  white-space: nowrap;
+}
+.nat-inv-unequip-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* ----------------------------------------------------------
+   BADGE LIST
+---------------------------------------------------------- */
+.nat-inv-badge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nat-inv-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-bg, rgba(255,255,255,0.04));
+  border: 1.5px solid var(--card-border, rgba(255,255,255,0.07));
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms, opacity 150ms;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.nat-inv-badge-row:active { opacity: 0.8; }
+.nat-inv-badge-row.equipped {
+  border-color: var(--card-border, rgba(255,255,255,0.35));
+  box-shadow: var(--card-glow, none);
+}
+.nat-inv-badge-row.locked {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.nat-inv-badge-icon {
+  font-size: 26px;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.nat-inv-badge-info {
+  flex: 1;
+  min-width: 0;
+}
+.nat-inv-badge-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nat-inv-badge-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nat-inv-badge-status {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.35);
+}
+.nat-inv-badge-row.equipped .nat-inv-badge-status {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+}
+.nat-inv-badge-row.locked .nat-inv-badge-status {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.2);
+}
+
+/* Badge equipped slot indicator */
+.nat-inv-badge-slots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px 10px;
+  color: rgba(255,255,255,0.3);
+  font-size: 11px;
+}
+.nat-inv-slot-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  transition: background 200ms;
+}
+.nat-inv-slot-dot.filled {
+  background: #ffb800;
+  box-shadow: 0 0 6px rgba(255,184,0,0.5);
+}
+
+/* ----------------------------------------------------------
+   TITLE LIST
+---------------------------------------------------------- */
+.nat-inv-title-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nat-inv-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--card-bg, rgba(255,255,255,0.04));
+  border: 1.5px solid var(--card-border, rgba(255,255,255,0.07));
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms, opacity 150ms;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.nat-inv-title-row:active { opacity: 0.8; }
+.nat-inv-title-row.equipped {
+  border-color: var(--card-border, rgba(255,255,255,0.35));
+  box-shadow: var(--card-glow, none);
+}
+.nat-inv-title-row.locked {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.nat-inv-title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rarity-color, #e8e8f0);
+}
+.nat-inv-title-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+.nat-inv-title-rarity {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rarity-color, rgba(255,255,255,0.4));
+}
+.nat-inv-title-req {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+}
+.nat-inv-title-row.equipped .nat-inv-title-req {
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* ----------------------------------------------------------
+   EMPTY STATE
+---------------------------------------------------------- */
+.nat-inv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 10px;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+}
+.nat-inv-empty-icon { font-size: 36px; opacity: 0.5; }
+.nat-inv-empty-text { font-size: 13px; line-height: 1.5; }
+
+/* ----------------------------------------------------------
+   LOADING SKELETON
+---------------------------------------------------------- */
+.nat-inv-skeleton {
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: nat-inv-shimmer 1.4s infinite;
+}
+@keyframes nat-inv-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.nat-inv-skeleton-frame {
+  height: 130px;
+  border-radius: 14px;
+}
+.nat-inv-skeleton-row {
+  height: 58px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+/* ----------------------------------------------------------
+   FOOTER — equip slot summary
+---------------------------------------------------------- */
+.nat-inv-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 16px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.nat-inv-footer-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+.nat-inv-footer-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* ----------------------------------------------------------
+   TRIGGER BUTTON (injected by inventory-ui.js)
+---------------------------------------------------------- */
+.nat-inv-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms, border-color 160ms, color 160ms;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.nat-inv-trigger:hover,
+.nat-inv-trigger:active {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+}
+.nat-inv-trigger-icon { font-size: 14px; }
+
+/* ----------------------------------------------------------
+   TOAST (inline, non-blocking)
+---------------------------------------------------------- */
+.nat-inv-toast {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(30,30,50,0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e8e8f0;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms, transform 220ms;
+  z-index: 1;
+}
+.nat-inv-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ----------------------------------------------------------
+   REDUCED MOTION
+---------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .nat-inv-panel,
+  .nat-inv-overlay,
+  .nat-inv-frame-card,
+  .nat-inv-badge-row,
+  .nat-inv-title-row {
+    transition: none !important;
+    animation: none !important;
+  }
+}

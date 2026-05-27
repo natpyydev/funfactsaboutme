@@ -1,0 +1,605 @@
+/* all-patches.css — consolidated from patches.css + phase3-stabilization.css + patch-four-fixes.css */
+
+
+/* === patches.css === */
+.message-bubble:not(.prestige-user) .msg-top-row {
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+}
+
+.message-bubble:not(.prestige-user) .user-badges-inline {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+/* prestige spacing */
+.prestige-badge-row,
+.user-badges-inline {
+  gap: 6px !important;
+}
+
+/* title spacing */
+.prestige-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vip-admin-fab,
+.link-account-fab {
+  bottom: 110px !important;
+}
+/* move floating Link Account button higher */
+.upgrade-auth-btn {
+  bottom: 110px !important;
+}
+
+/* === phase3-stabilization.css === */
+/* ============================================================
+   PHASE 3 STABILIZATION — phase3-stabilization.css
+   Load LAST — after prestige-system/styles/mobile-fixes.css
+   ============================================================ */
+
+
+/* ── 1. KILL LEGACY BADGE ROW ──────────────────────────────── */
+/* renderer.js hides it via JS; this is the CSS timing safety net */
+
+.msg-badges-row {
+  display: none !important;
+}
+
+/* Prevent .msg-sender from leaking into prestige layout */
+.msg-prestige-wrap .msg-sender {
+  display: none !important;
+}
+
+
+/* ── 2. TITLE CHIP — collapsed spacing fix ──────────────────── */
+
+.prestige-title-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+/* Title container — always has a minimum height even when empty */
+.msg-prestige-titles {
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.msg-prestige-titles:empty {
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ── 3. UNIFIED BADGE ROW STRUCTURE ─────────────────────────── */
+
+.msg-cosmetic-badges,
+.msg-elite-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.msg-cosmetic-badges:empty,
+.msg-elite-badges:empty {
+  display: none;
+  margin: 0;
+}
+
+/* Badge chips from cosmetics-renderer.js */
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  line-height: 1;
+  cursor: default;
+  user-select: none;
+}
+
+
+/* ── 4. GLOW INTENSITY REDUCTION (~60% of original) ─────────── */
+
+.message-bubble.mythic-glow {
+  box-shadow:
+    0 0 18px rgba(255, 170, 0, 0.22),
+    0 0 36px rgba(255, 80,  0, 0.09) !important;
+}
+
+.prestige-vip-bar {
+  box-shadow:
+    0 0 14px rgba(255, 215, 120, 0.15),
+    inset 0 0 8px rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Reduce badge glow peak values */
+@keyframes legendaryGlow {
+  from { box-shadow: 0 0  4px gold; }
+  to   { box-shadow: 0 0  9px gold; }  /* was 6→16px */
+}
+
+.badge-rarity-mythic {
+  box-shadow: 0 0 7px #ff00ff !important; /* was 12px */
+}
+
+.badge-rarity-rare {
+  box-shadow: 0 0 4px #00ffff !important; /* was 6px */
+}
+
+.badge-rarity-epic {
+  box-shadow: 0 0 5px #a020f0 !important; /* was 8px */
+}
+
+/* Gem glow reduction */
+.prestige-gem {
+  box-shadow:
+    0 0 7px rgba(255, 255, 255, 0.22),  /* was 12px / 0.35 */
+    inset 0 2px 4px rgba(255, 255, 255, 0.18) !important; /* was 6px / 0.25 */
+}
+
+
+/* ── 5. USERNAME ROW — stable header spacing ─────────────────── */
+
+.msg-prestige-username-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  min-height: 26px;
+  padding-bottom: 2px;
+  /* Undo any inherited overflow traps from .msg-meta */
+  overflow: visible !important;
+}
+
+/* Timestamp always on far right, never gets squeezed */
+.msg-prestige-time {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.82em;
+  opacity: 0.65;
+}
+
+/* Username text block */
+.msg-prestige-username {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: visible !important;
+}
+
+.msg-prestige-name {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: break-word;
+  max-width: none !important;
+}
+
+
+/* ── 6. Z-INDEX STABLE LAYERING ──────────────────────────────── */
+
+.msg-prestige-wrap    { isolation: isolate; }
+
+.prestige-particles   { z-index: 0 !important; pointer-events: none; }
+.prestige-vip-bar     { z-index: 1 !important; }
+.msg-prestige-left    { z-index: 2 !important; }
+.msg-prestige-right   { z-index: 2 !important; }
+
+.msg-cosmetic-badges  { z-index: 3 !important; position: relative; }
+.msg-elite-badges     { z-index: 3 !important; position: relative; }
+.prestige-title-chip  { z-index: 3 !important; position: relative; }
+.msg-prestige-titles  { z-index: 3 !important; position: relative; }
+
+/* ── 7. LEADERBOARD COSMETICS ────────────────────────────────── */
+
+.lb-title-chip {
+  font-size: 10px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.lb-elite-badges {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.lb-elite-badges .elite-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
+
+/* ── 8. MOBILE FIXES ─────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+
+  /* Badges wrap and stay in bounds */
+  .msg-cosmetic-badges,
+  .msg-elite-badges {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  /* Emoji-only badge chips: constrain to one character width */
+  .badge-chip {
+    max-width: 2.2em;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  /* Title chip shrinks gracefully */
+  .prestige-title-chip {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  /* Elite badges smaller on mobile */
+  .elite-badge {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+  }
+
+  /* Username row can wrap on small screens but still aligns well */
+  .msg-prestige-username-row {
+    flex-wrap: wrap;
+    min-height: 22px;
+  }
+
+}
+
+@media (max-width: 380px) {
+
+  /* On very narrow phones, badges get their own row below title */
+  .msg-cosmetic-badges {
+    margin-top: 3px;
+    gap: 3px;
+  }
+
+  .prestige-title-chip {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  .msg-prestige-username-row {
+    gap: 4px;
+  }
+
+}
+/* ── VIP FAB: restrict to admin-only visibility ─────────────── */
+.vip-admin-fab {
+  display: none !important;
+}
+.is-admin .vip-admin-fab,
+body[data-role="admin"] .vip-admin-fab {
+  display: grid !important;
+}
+
+/* === patch-four-fixes.css === */
+/* ============================================================
+   patch-four-fixes.css
+   Load LAST — after theme-fx-dual-layer.css
+
+   Fix 1: Tabs/nav stacking context — meteors pass over nav
+   Fix 2: (Handled in patch-four-fixes.js)
+   Fix 3: Cyber theme brightness boost
+   Fix 4: Reply/bin buttons stay inside message plate
+   ============================================================ */
+
+
+/* ============================================================
+   FIX 1 — TABS/NAV STACKING CONTEXT
+   Root cause: .nat-tabs-nav has `backdrop-filter` which
+   creates a NEW stacking context, confining z-index to
+   that context. `position: sticky` alone doesn't trap,
+   but backdrop-filter DOES — so z-index:150 crossing
+   particles are trapped below the nav's stacking context
+   even though their numeric z-index is higher.
+
+   Solution: Move backdrop-filter off .nat-tabs-nav itself
+   onto a ::before pseudo-element so the nav's stacking
+   context stays "open" (no backdrop-filter, no isolation).
+   The visual blur is preserved via the pseudo.
+   ============================================================ */
+
+/* Step 1: Strip all stacking-context creators from the nav */
+.nat-tabs-nav {
+  /* backdrop-filter removed — moved to ::before */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* Keep sticky + z-index but do NOT create isolation */
+  isolation: auto !important;
+  /* overflow must be visible so crossing particles pass through */
+  overflow: visible !important;
+  contain: none !important;
+  /* transform only on hover of children, never on the nav itself */
+  transform: none !important;
+  will-change: auto !important;
+}
+
+/* Step 2: Re-implement blur via ::before (pseudo does not trap fixed children) */
+.nat-tabs-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  /* sits BELOW the nav content, does not affect stacking of siblings */
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Step 3: Same treatment for theme-specific nav variants that added backdrop-filter */
+body.theme-cyber .nat-tabs-nav,
+body.theme-space .nat-tabs-nav,
+body.theme-hell .nat-tabs-nav,
+body.theme-heaven .nat-tabs-nav,
+body.theme-forest .nat-tabs-nav,
+body.theme-y2k .nat-tabs-nav {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+  isolation: auto !important;
+}
+
+/* Step 4: Also fix sticky-tab-section wrapper if it exists */
+.sticky-tab-section {
+  overflow: visible !important;
+  isolation: auto !important;
+  contain: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Step 5: Ensure .tfx-crossing is truly above everything in nav band */
+/* (already z:150 via dual-layer.css, this reinforces no clipping parent) */
+body > .tfx-crossing {
+  /* Direct body children are unaffected by any descendant stacking context */
+  isolation: auto !important;
+  contain: none !important;
+}
+
+/* Step 6: Tab buttons — hover transform is safe (creates context within button,
+   which is fine). But strip animation from the nav wrapper itself to prevent
+   any inadvertent stacking context from animation fill-mode. */
+.nat-tabs-nav {
+  animation: none !important; /* if any theme applies animation to the nav bar */
+}
+
+
+/* ============================================================
+   FIX 3 — CYBER THEME BRIGHTNESS
+   Root cause: --t-surface and background gradients in
+   theme-fx-dual-layer.css use very deep blacks (rgba 0,8,2)
+   which crush the matrix rain and grid lines.
+
+   Strategy:
+   - Lift background base luminance (+15-20 points)
+   - Boost ambient glow layers
+   - Add cyan/green fog haze
+   - Add visible grid glow
+   - Keep dark cyberpunk aesthetic — NOT light mode
+   ============================================================ */
+
+/* Override cyber base theme tokens to be brighter */
+body.theme-cyber {
+  --t-surface:        rgba(0, 32, 12, 0.80)   !important; /* was 0,20,8 */
+  --t-surface-deep:   rgba(0, 20, 8, 0.92)    !important; /* was 0,10,4 */
+  --t-surface-subtle: rgba(0, 60, 22, 0.55)   !important; /* was 0,40,14 */
+  --t-header-bg:      rgba(0, 18, 32, 0.82)   !important; /* was 0,8,20 */
+  --t-accent:         #00ff65                  !important; /* brighter green */
+  --t-accent-rgb:     0, 255, 101              !important;
+  --t-accent-glow:    rgba(0, 255, 101, 0.45) !important; /* stronger glow */
+  --t-text:           #c8ffcc                  !important; /* brighter text */
+  --t-text-sub:       rgba(0, 255, 101, 0.80) !important;
+  --t-border:         rgba(0, 255, 101, 0.28) !important; /* more visible borders */
+  --t-border-accent:  rgba(0, 255, 101, 0.50) !important;
+  --t-shadow:         rgba(0, 255, 101, 0.20) !important;
+}
+
+/* Brighter background atmosphere on the bg-fx div */
+body[data-theme="cyber"] #theme-bg-fx,
+body.theme-cyber #theme-bg-fx {
+  background:
+    /* Cyan bottom glow — was too low opacity */
+    radial-gradient(ellipse 130% 55% at 50% 115%, rgba(0, 200, 80, 0.45) 0%, transparent 65%),
+    /* Teal side hazes */
+    radial-gradient(ellipse 50% 70% at  0% 50%, rgba(0, 120, 60, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 70% at 100% 50%, rgba(0, 180, 120, 0.14) 0%, transparent 60%),
+    /* Top green tinge — was nearly invisible */
+    radial-gradient(ellipse 70% 35% at 50% -5%,  rgba(0, 255, 80, 0.12) 0%, transparent 70%),
+    /* Base — lifted from #000c02 to richer dark green */
+    linear-gradient(180deg, #001408 0%, #002610 60%, #003018 100%) !important;
+}
+
+/* Add ambient cyber fog overlay to the bg layer */
+body[data-theme="cyber"] #theme-bg-fx::after,
+body.theme-cyber #theme-bg-fx::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Translucent cyan/green haze bands */
+  background:
+    radial-gradient(ellipse 80% 40% at 25% 40%, rgba(0, 255, 160, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 40% at 75% 60%, rgba(0, 200, 255, 0.05) 0%, transparent 70%);
+  z-index: 0;
+}
+
+/* Cards on cyber — lift surface so content is readable */
+body.theme-cyber .fact-card,
+body.theme-cyber .fact-card-v2 .fc-front,
+body.theme-cyber .fact-card-v2 .fc-back,
+body.theme-cyber .react-card,
+body.theme-cyber .msg-card,
+body.theme-cyber .service-card,
+body.theme-cyber .premium-card,
+body.theme-cyber .gb-form,
+body.theme-cyber .leaderboard,
+body.theme-cyber .message-bubble {
+  background: rgba(0, 30, 14, 0.82) !important;
+  border-color: rgba(0, 255, 101, 0.30) !important;
+  box-shadow:
+    0 4px 24px rgba(0, 255, 101, 0.12),
+    0 0 0 1px rgba(0, 255, 101, 0.10) inset !important;
+}
+
+/* Profile card */
+body.theme-cyber .prof-card {
+  background: rgba(0, 25, 12, 0.88) !important;
+}
+
+/* Nav tabs on cyber — brighter base */
+body.theme-cyber .nat-tabs-nav {
+  background: rgba(0, 28, 12, 0.90) !important;
+  border-bottom-color: rgba(0, 255, 101, 0.28) !important;
+}
+
+body.theme-cyber .nat-tab-btn {
+  background: rgba(0, 45, 20, 0.70) !important;
+  border-color: rgba(0, 255, 101, 0.28) !important;
+  color: #a0ffb0 !important;
+}
+
+/* Matrix rain — was too dark overlay blending into background */
+/* Handled in JS (opacity boost), but CSS can assist */
+body[data-theme="cyber"] #theme-fg-fx canvas,
+body.theme-cyber #theme-fg-fx canvas {
+  opacity: 0.75 !important; /* was 0.55 */
+  mix-blend-mode: screen;   /* Screen blend lifts perceived brightness */
+}
+
+/* Scanline overlay — make grid lines MORE visible */
+body[data-theme="cyber"] #theme-bg-fx,
+body.theme-cyber #theme-bg-fx {
+  /* Reinforce the scanline grid from JS with CSS fallback */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 101, 0.04) 0px,
+      rgba(0, 255, 101, 0.04) 1px,
+      transparent 1px,
+      transparent 4px
+    ) !important;
+  background-size: auto !important;
+}
+
+
+/* ============================================================
+   FIX 4 — REPLY/BIN BUTTONS INSIDE MESSAGE PLATE
+   Root cause: .msg-actions has `max-width: 50%` + flex
+   shrink but the parent .msg-top-row uses `justify-content:
+   space-between` without a constraining min-width: 0 on the
+   meta block, causing overflow when both blocks are wide.
+   The delete-btn also has `margin-left: 6px` that can push
+   it outside on narrow plates.
+
+   Solution:
+   - Give .msg-meta explicit min-width: 0 + flex: 1 so it
+     shrinks instead of pushing actions out
+   - Give .msg-actions flex: 0 0 auto (no grow/shrink chaos)
+   - Ensure .message-bubble has box-sizing: border-box
+   - Wrap protection on mobile
+   ============================================================ */
+
+/* Constrain the top row properly */
+.msg-top-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important; /* align-items: center can cause overflow on tall meta blocks */
+  gap: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Meta must shrink, not push actions out */
+.msg-meta {
+  min-width: 0 !important;
+  flex: 1 1 0 !important;  /* grow AND shrink, base 0 */
+  overflow: hidden !important;
+}
+
+/* Sender text truncates rather than overflowing */
+.msg-sender {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+}
+
+/* Actions: fixed size, never shrink, never grow */
+.msg-actions {
+  flex: 0 0 auto !important;
+  max-width: none !important;  /* remove old 50% clamp that caused misalignment */
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  align-self: flex-start !important;
+}
+
+/* Delete button — remove the margin that pushed it outside */
+.delete-btn {
+  margin-left: 0 !important; /* was 6px — now handled by gap on .msg-actions */
+  flex-shrink: 0 !important;
+}
+
+/* Reply toggle — also flex-shrink: 0 so it doesn't squish */
+.reply-toggle-btn {
+  flex-shrink: 0 !important;
+}
+
+/* Message bubble itself must be fully box-sizing contained */
+.message-bubble {
+  box-sizing: border-box !important;
+  overflow: hidden !important;  /* clips inner content, not positioned children */
+  /* overflow:visible from theme-fx-dual-layer.css was to help avatars —
+     but inner content needs clipping. Avatar frames use overflow:visible
+     on .prof-pfp-wrap, not on .message-bubble, so this is safe to restore. */
+  width: 100% !important;
+}
+
+/* Mobile: allow actions to wrap below meta if truly no space */
+@media (max-width: 480px) {
+  .msg-top-row {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+  }
+
+  .msg-actions {
+    /* On very narrow screens, actions go on their own line */
+    width: 100% !important;
+    justify-content: flex-end !important;
+    margin-top: 4px !important;
+  }
+
+  .msg-meta {
+    flex: 1 1 100% !important;
+  }
+}
+

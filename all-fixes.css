@@ -1,0 +1,138 @@
+/**
+ * all-fixes.css
+ * Load this AFTER all other stylesheets.
+ * Covers: Fix 2 (frame overflow on themes), Fix 7 (titles), Fix 8 (level gem font).
+ */
+
+/* ── Fix 8: Orbitron premium font ───────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+/* ── Fix 2: Frame overflow — themes must not clip .nat-frame-host ── */
+
+/* Generic theme selectors */
+body[class*="theme-"] .nat-frame-host,
+body[data-theme] .nat-frame-host,
+body[class*="theme-"] .msg-pfp-avatar.nat-frame-host,
+body[data-theme] .msg-pfp-avatar.nat-frame-host {
+  overflow: visible !important;
+}
+
+/* The message bubble clips chat avatars — fix it */
+.message-bubble {
+  overflow: visible !important;
+}
+
+/* Preserve bubble border-radius visual by using clip-path instead */
+/* (only apply if your bubbles need clipping — comment out if it breaks layout) */
+/* .message-bubble { clip-path: inset(0 round var(--bubble-radius, 12px)); } */
+
+/* Any parent that still hides frame bleed */
+.msg-meta,
+.msg-pfp-wrap,
+.msg-avatar-wrap {
+  overflow: visible !important;
+}
+
+/* ── Fix 7: Titles — ensure title chips are always visible ───────── */
+.msg-prestige-titles {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 0;
+}
+
+/* Don't hide titles for any level */
+.msg-prestige-titles:empty {
+  display: none !important;
+}
+
+/* ── Fix 8: msg-level-gem — alias to prestige-gem styles ─────────── */
+.msg-level-gem {
+  /* Mirror .prestige-gem from prestige-layout.css */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--prestige-gem-size, 28px);
+  height: var(--prestige-gem-size, 28px);
+  border-radius: 50%;
+  font-family: 'Orbitron', 'Rajdhani', 'Exo 2', sans-serif;
+  font-weight: 900;
+  font-size: var(--prestige-gem-font, 11px);
+  line-height: 1;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ── Games Tab Section ───────────────────────────────────────────── */
+.games-tab-section {
+  padding: 24px 16px 40px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.game-card {
+  background: var(--card-bg, rgba(255,255,255,0.08));
+  border: 1.5px solid var(--border-color, rgba(255,255,255,0.15));
+  border-radius: 16px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.game-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.game-card-emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.game-card-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary, #fff);
+}
+
+.game-card-desc {
+  font-size: 12px;
+  opacity: .7;
+  color: var(--text-secondary, #ccc);
+}
+
+.game-card-btn {
+  margin-top: 8px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  background: var(--accent, #f472b6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity .15s, transform .15s;
+}
+
+.game-card-btn:hover {
+  opacity: .88;
+  transform: scale(1.04);
+}
+
+.game-card-role .game-card-btn {
+  background: var(--accent2, #818cf8);
+}

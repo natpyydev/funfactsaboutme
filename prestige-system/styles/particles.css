@@ -1,0 +1,52 @@
+/*
+ * styles/particles.css
+ *
+ * Ambient floating particle layer.
+ * The .prestige-particles container is absolutely positioned
+ * inside .msg-prestige-wrap with pointer-events:none so it
+ * never intercepts clicks.
+ *
+ * Particles are only injected by particles.js if the user
+ * has NOT set prefers-reduced-motion, so this file doesn't
+ * need a @media query — the JS gate is sufficient.
+ */
+
+.prestige-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  /* Particles sit above the VIP bar (z:1) but below content (z:2) */
+}
+
+.prestige-particle {
+  position: absolute;
+  bottom: 0;              /* JS sets 'left', animation handles vertical */
+
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.6);
+
+  animation: prestigeFloat linear infinite;
+  /* animationDelay + animationDuration set inline by particles.js */
+}
+
+@keyframes prestigeFloat {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  85% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-110px) scale(1.3);
+    opacity: 0;
+  }
+}

@@ -1,0 +1,45 @@
+.badge-rarity-common {
+border: 1px solid #888;
+}
+
+.badge-rarity-rare {
+border: 1px solid #00ffff;
+box-shadow: 0 0 6px #00ffff;
+}
+
+.badge-rarity-epic {
+border: 1px solid #a020f0;
+box-shadow: 0 0 8px #a020f0;
+}
+
+.badge-rarity-legendary {
+border: 1px solid gold;
+box-shadow: 0 0 10px gold;
+animation: legendaryGlow 1.5s infinite alternate;
+}
+
+.badge-rarity-mythic {
+border: 1px solid #ff00ff;
+box-shadow: 0 0 12px #ff00ff;
+animation: mythicRainbow 3s linear infinite;
+}
+
+@keyframes legendaryGlow {
+from {
+box-shadow: 0 0 6px gold;
+}
+
+to {
+box-shadow: 0 0 16px gold;
+}
+}
+
+@keyframes mythicRainbow {
+from {
+filter: hue-rotate(0deg);
+}
+
+to {
+filter: hue-rotate(360deg);
+}
+}

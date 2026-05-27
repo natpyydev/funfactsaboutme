@@ -1,0 +1,826 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PROFESSIONAL MODE — CINEMATIC GALLERY ORB SYSTEM
+   professional-gallery-orb.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── WORLD-SPACE ORB ACCESS POINT ─────────────────────────────────── */
+.pgal-orb-anchor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 80px 0 100px;
+  z-index: 1;
+}
+
+.pgal-orb-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.45);
+  transition: color 0.4s, letter-spacing 0.4s;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── ORB CONTAINER ────────────────────────────────────────────────── */
+.pgal-orb-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
+  animation: pgal-float 4.2s ease-in-out infinite;
+}
+
+@keyframes pgal-float {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-14px); }
+  100% { transform: translateY(0px); }
+}
+
+/* ── CORE SPHERE ──────────────────────────────────────────────────── */
+.pgal-orb-core {
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(0, 240, 255, 0.28) 0%,
+    rgba(0, 150, 220, 0.14) 40%,
+    rgba(0, 30, 60, 0.55) 100%
+  );
+  border: 1px solid rgba(0, 220, 255, 0.25);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    0 0 24px rgba(0, 220, 255, 0.18),
+    0 0 60px rgba(0, 220, 255, 0.06),
+    inset 0 0 24px rgba(0, 220, 255, 0.10);
+  transition: box-shadow 0.4s, border-color 0.4s, background 0.4s;
+  overflow: hidden;
+}
+
+/* Specular highlight */
+.pgal-orb-core::before {
+  content: '';
+  position: absolute;
+  top: 14%;
+  left: 20%;
+  width: 28%;
+  height: 18%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Inner glow pulse */
+.pgal-orb-core::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 220, 255, 0.20) 0%, transparent 70%);
+  animation: pgal-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes pgal-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.88); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+
+/* Icon inside orb */
+.pgal-orb-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  z-index: 2;
+  filter: drop-shadow(0 0 8px rgba(0, 220, 255, 0.7));
+  animation: pgal-icon-breathe 3s ease-in-out infinite;
+}
+
+@keyframes pgal-icon-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.8; }
+  50%       { transform: scale(1.06); opacity: 1; }
+}
+
+/* ── RINGS ────────────────────────────────────────────────────────── */
+.pgal-orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 220, 255, 0.20);
+  pointer-events: none;
+}
+
+.pgal-orb-ring-1 {
+  inset: 6px;
+  animation: pgal-ring-spin 8s linear infinite;
+}
+.pgal-orb-ring-2 {
+  inset: -2px;
+  border-color: rgba(0, 220, 255, 0.10);
+  animation: pgal-ring-spin 14s linear infinite reverse;
+}
+.pgal-orb-ring-3 {
+  inset: -12px;
+  border-color: rgba(0, 220, 255, 0.06);
+  animation: pgal-ring-spin 20s linear infinite;
+}
+
+/* Ring marker dot */
+.pgal-orb-ring-1::before,
+.pgal-orb-ring-2::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0, 220, 255, 0.7);
+  box-shadow: 0 0 6px rgba(0, 220, 255, 0.9);
+  transform: translateY(-50%);
+}
+
+@keyframes pgal-ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── PARTICLE AURA ────────────────────────────────────────────────── */
+.pgal-orb-particles {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.pgal-orb-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(0, 220, 255, 0.75);
+  box-shadow: 0 0 4px rgba(0, 220, 255, 0.8);
+}
+
+/* 8 particles at different positions and timing */
+.pgal-orb-particle:nth-child(1) {
+  top: 18%; left: 5%;
+  animation: pgal-particle 3.2s 0.0s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(2) {
+  top: 5%;  left: 40%;
+  animation: pgal-particle 2.8s 0.4s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(3) {
+  top: 12%; right: 8%;
+  animation: pgal-particle 3.5s 0.8s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(4) {
+  top: 50%; right: 2%;
+  animation: pgal-particle 2.6s 1.2s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(5) {
+  bottom: 10%; right: 12%;
+  animation: pgal-particle 3.8s 0.2s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(6) {
+  bottom: 5%; left: 45%;
+  animation: pgal-particle 2.9s 1.6s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(7) {
+  bottom: 15%; left: 5%;
+  animation: pgal-particle 3.1s 0.6s ease-in-out infinite;
+}
+.pgal-orb-particle:nth-child(8) {
+  top: 40%; left: 0%;
+  animation: pgal-particle 2.7s 1.0s ease-in-out infinite;
+}
+
+@keyframes pgal-particle {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+  30%       { opacity: 0.9; transform: translate(var(--dx, 6px), var(--dy, -8px)) scale(1); }
+  60%       { opacity: 0.4; transform: translate(var(--dx2, 10px), var(--dy2, -14px)) scale(0.6); }
+}
+
+/* Each particle gets unique direction via inline style overrides */
+.pgal-orb-particle:nth-child(1)  { --dx: -8px; --dy: -10px; --dx2: -14px; --dy2: -18px; }
+.pgal-orb-particle:nth-child(2)  { --dx:  4px; --dy:  -12px; --dx2:  6px; --dy2: -20px; }
+.pgal-orb-particle:nth-child(3)  { --dx:  10px; --dy: -8px; --dx2:  16px; --dy2: -14px; }
+.pgal-orb-particle:nth-child(4)  { --dx:  12px; --dy:  4px; --dx2:  20px; --dy2:  6px; }
+.pgal-orb-particle:nth-child(5)  { --dx:  8px; --dy:  10px; --dx2:  14px; --dy2:  16px; }
+.pgal-orb-particle:nth-child(6)  { --dx: -4px; --dy:  12px; --dx2:  -6px; --dy2:  20px; }
+.pgal-orb-particle:nth-child(7)  { --dx: -10px; --dy:  8px; --dx2: -16px; --dy2:  14px; }
+.pgal-orb-particle:nth-child(8)  { --dx: -12px; --dy: -4px; --dx2: -20px; --dy2:  -6px; }
+
+/* ── HOVER STATE ──────────────────────────────────────────────────── */
+.pgal-orb-wrap:hover .pgal-orb-core {
+  box-shadow:
+    0 0 40px rgba(0, 220, 255, 0.45),
+    0 0 90px rgba(0, 220, 255, 0.18),
+    inset 0 0 30px rgba(0, 220, 255, 0.22);
+  border-color: rgba(0, 220, 255, 0.60);
+}
+
+.pgal-orb-wrap:hover .pgal-orb-ring-1 {
+  border-color: rgba(0, 220, 255, 0.40);
+}
+.pgal-orb-wrap:hover .pgal-orb-ring-2 {
+  border-color: rgba(0, 220, 255, 0.25);
+}
+.pgal-orb-wrap:hover .pgal-orb-ring-3 {
+  border-color: rgba(0, 220, 255, 0.15);
+}
+
+.pgal-orb-wrap:hover .pgal-orb-particle {
+  background: rgba(0, 220, 255, 0.95);
+  box-shadow: 0 0 8px rgba(0, 220, 255, 1);
+}
+
+.pgal-orb-wrap:hover ~ .pgal-orb-label {
+  color: rgba(0, 220, 255, 0.85);
+  letter-spacing: 7px;
+}
+
+.pgal-orb-wrap:hover .pgal-orb-icon {
+  filter: drop-shadow(0 0 14px rgba(0, 220, 255, 1));
+}
+
+/* ── CLICK ZOOM TRANSITION ────────────────────────────────────────── */
+.pgal-zoom-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%),
+    rgba(0, 220, 255, 0.25) 0%,
+    rgba(0, 10, 30, 0.98) 60%
+  );
+  opacity: 0;
+  transform: scale(0.1);
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  transition: opacity 0s, transform 0s;
+  border-radius: 50%;
+}
+
+.pgal-zoom-veil.pgal-zoom-in {
+  opacity: 1;
+  transform: scale(4);
+  border-radius: 0;
+  transition: transform 0.65s cubic-bezier(.25, .46, .45, .94),
+              opacity 0.3s ease,
+              border-radius 0.5s 0.15s ease;
+  pointer-events: all;
+}
+
+.pgal-zoom-veil.pgal-zoom-hold {
+  opacity: 1;
+  transform: scale(4);
+  border-radius: 0;
+  pointer-events: all;
+  transition: none;
+}
+
+.pgal-zoom-veil.pgal-zoom-out {
+  opacity: 0;
+  transform: scale(4);
+  border-radius: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CINEMATIC GALLERY LIGHTBOX
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pgal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99995;
+  background: rgba(0, 2, 8, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.pgal-backdrop.pgal-active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── SCENE CONTAINER ──────────────────────────────────────────────── */
+.pgal-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 99996;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.pgal-scene.pgal-active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── HEADER BAR ───────────────────────────────────────────────────── */
+.pgal-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 99997;
+  background: linear-gradient(to bottom, rgba(0, 2, 8, 0.9) 0%, transparent 100%);
+}
+
+.pgal-header-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.6);
+}
+
+.pgal-close-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.5);
+  background: none;
+  border: 1px solid rgba(0, 220, 255, 0.18);
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.pgal-close-btn:hover {
+  color: #00dcff;
+  border-color: rgba(0, 220, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 220, 255, 0.2);
+  background: rgba(0, 220, 255, 0.05);
+}
+
+/* ── MAIN CARD STAGE ──────────────────────────────────────────────── */
+.pgal-stage {
+  position: relative;
+  width: min(480px, 90vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  flex: 1;
+}
+
+/* ── GLASSMORPHISM CARD ───────────────────────────────────────────── */
+.pgal-card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(4, 14, 28, 0.65);
+  border: 1px solid rgba(0, 220, 255, 0.18);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(0, 220, 255, 0.06),
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(0, 220, 255, 0.06),
+    inset 0 1px 0 rgba(0, 220, 255, 0.10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  transition: opacity 0.5s cubic-bezier(.22,.68,0,1.2),
+              transform 0.5s cubic-bezier(.22,.68,0,1.2);
+}
+
+.pgal-card.pgal-card-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.pgal-card.pgal-card-exit-left {
+  opacity: 0;
+  transform: translateX(-40px) scale(0.95);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.pgal-card.pgal-card-exit-right {
+  opacity: 0;
+  transform: translateX(40px) scale(0.95);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+/* Scanline overlay for cinematic feel */
+.pgal-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 220, 255, 0.012) 2px,
+    rgba(0, 220, 255, 0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Corner accents */
+.pgal-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 24px; height: 24px;
+  border-top: 1px solid rgba(0, 220, 255, 0.5);
+  border-left: 1px solid rgba(0, 220, 255, 0.5);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.pgal-card-corner-br {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 24px; height: 24px;
+  border-bottom: 1px solid rgba(0, 220, 255, 0.5);
+  border-right: 1px solid rgba(0, 220, 255, 0.5);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* ── IMAGE AREA ───────────────────────────────────────────────────── */
+.pgal-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: rgba(0, 10, 20, 0.8);
+}
+
+.pgal-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(.25,.46,.45,.94), filter 0.4s;
+  filter: brightness(0.92) saturate(1.1);
+}
+
+.pgal-card:hover .pgal-img-wrap img {
+  transform: scale(1.03);
+  filter: brightness(1) saturate(1.15);
+}
+
+/* Gradient overlay on image bottom */
+.pgal-img-gradient {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(transparent, rgba(4, 14, 28, 0.85));
+  pointer-events: none;
+}
+
+/* Reaction bar on image (from photowall) */
+.pgal-reactions-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.pgal-react-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(0, 2, 8, 0.75);
+  border: 1px solid rgba(0, 220, 255, 0.18);
+  border-radius: 20px;
+  font-size: 13px;
+  color: rgba(0, 220, 255, 0.7);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.pgal-react-btn:hover,
+.pgal-react-btn.on {
+  background: rgba(0, 220, 255, 0.10);
+  border-color: rgba(0, 220, 255, 0.45);
+  color: #00dcff;
+  box-shadow: 0 0 10px rgba(0, 220, 255, 0.18);
+}
+
+.pgal-react-count {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* ── CARD BODY ────────────────────────────────────────────────────── */
+.pgal-card-body {
+  padding: 20px 22px 22px;
+  position: relative;
+  z-index: 2;
+}
+
+.pgal-post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pgal-post-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.55);
+}
+
+.pgal-post-ts {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.pgal-post-caption {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.75);
+  min-height: 22px;
+}
+
+/* Delete button */
+.pgal-del-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 60, 60, 0.10);
+  border: 1px solid rgba(255, 60, 60, 0.20);
+  color: rgba(255, 80, 80, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: all 0.25s;
+  z-index: 5;
+}
+
+.pgal-del-btn:hover {
+  background: rgba(255, 60, 60, 0.22);
+  color: rgba(255, 100, 100, 0.9);
+  border-color: rgba(255, 60, 60, 0.50);
+}
+
+/* ── UPLOAD PANEL ─────────────────────────────────────────────────── */
+.pgal-upload-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px 24px;
+  background: linear-gradient(transparent, rgba(0, 2, 8, 0.95) 30%);
+  z-index: 99997;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.pgal-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pgal-upload-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.65);
+  background: none;
+  border: 1px solid rgba(0, 220, 255, 0.22);
+  padding: 9px 18px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.pgal-upload-btn:hover {
+  color: #00dcff;
+  border-color: rgba(0, 220, 255, 0.55);
+  box-shadow: 0 0 14px rgba(0, 220, 255, 0.18);
+  background: rgba(0, 220, 255, 0.05);
+}
+
+.pgal-upload-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pgal-post-input {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  background: rgba(0, 220, 255, 0.04);
+  border: 1px solid rgba(0, 220, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 9px 14px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.25s;
+  width: min(260px, 55vw);
+}
+
+.pgal-post-input:focus {
+  border-color: rgba(0, 220, 255, 0.40);
+}
+
+.pgal-post-input::placeholder {
+  color: rgba(255, 255, 255, 0.20);
+}
+
+.pgal-preview-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 2px;
+  object-fit: cover;
+  border: 1px solid rgba(0, 220, 255, 0.30);
+  display: none;
+}
+
+.pgal-preview-thumb.pgal-has-img {
+  display: block;
+}
+
+/* ── NAV ARROWS ───────────────────────────────────────────────────── */
+.pgal-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 99997;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pgal-nav-left  { left: 20px; }
+.pgal-nav-right { right: 20px; }
+
+.pgal-nav-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  color: rgba(0, 220, 255, 0.35);
+  background: none;
+  border: 1px solid rgba(0, 220, 255, 0.12);
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 2px;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 2, 8, 0.4);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.pgal-nav-btn:hover {
+  color: #00dcff;
+  border-color: rgba(0, 220, 255, 0.40);
+  box-shadow: 0 0 14px rgba(0, 220, 255, 0.15);
+  background: rgba(0, 220, 255, 0.05);
+}
+
+.pgal-nav-btn:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+/* ── COUNTER + PROGRESS ───────────────────────────────────────────── */
+.pgal-counter {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(0, 220, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pgal-progress-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pgal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(0, 220, 255, 0.18);
+  transition: all 0.3s;
+}
+
+.pgal-dot.pgal-dot-active {
+  background: rgba(0, 220, 255, 0.8);
+  box-shadow: 0 0 6px rgba(0, 220, 255, 0.6);
+  transform: scale(1.4);
+}
+
+/* ── EMPTY STATE ──────────────────────────────────────────────────── */
+.pgal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 40px;
+  color: rgba(0, 220, 255, 0.30);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.pgal-empty-icon {
+  font-size: 36px;
+  opacity: 0.35;
+}
+
+/* ── BIGHEART POP ─────────────────────────────────────────────────── */
+.pgal-bigheart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+  transform: scale(0.5);
+}
+
+.pgal-bigheart.pop {
+  animation: pgal-heartpop 0.7s ease-out forwards;
+}
+
+@keyframes pgal-heartpop {
+  0%   { opacity: 0;   transform: scale(0.5); }
+  30%  { opacity: 1;   transform: scale(1.3); }
+  60%  { opacity: 0.8; transform: scale(0.95); }
+  100% { opacity: 0;   transform: scale(1.1); }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .pgal-orb-wrap {
+    width: 90px;
+    height: 90px;
+  }
+  .pgal-orb-icon { font-size: 22px; }
+  .pgal-stage { width: 92vw; }
+  .pgal-nav-left  { left: 6px; }
+  .pgal-nav-right { right: 6px; }
+  .pgal-nav-btn { width: 32px; height: 32px; font-size: 14px; }
+  .pgal-header { padding: 14px 18px; }
+}

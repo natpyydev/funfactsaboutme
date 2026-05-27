@@ -1,0 +1,1061 @@
+/*
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  THEME SYSTEM v2 — Token Architecture + Glass UI + Avatar Fix               ║
+║  Paste at the END of style.css (after the existing Theme FX Layer Fixes)    ║
+║  This file supersedes all previous per-theme overrides for the listed       ║
+║  surfaces. It does NOT remove the old overrides — it outranks them via       ║
+║  specificity (body.theme-X .surface beats .surface).                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ROOT-CAUSE ANALYSIS
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLEM A — No CSS custom property token system
+────────────────────────────────────────────────
+The six themes (cyber/space/hell/heaven/forest/y2k) each override ~29 rules
+as hardcoded RGBA values on every individual selector. There is no shared
+token layer. When a new surface needs theming (like .prof-card or .socmed-btn),
+it must be manually added to all six themes. This is why these surfaces are
+completely plain — they were simply never added.
+
+PROBLEM B — Surfaces missing from theme override lists
+────────────────────────────────────────────────────────
+After auditing every body.theme-X rule in style.css, the following surfaces
+have ZERO theme overrides:
+  - .profile-section  (hardcoded pink gradient background)
+  - .prof-card        (hardcoded rgba(255,255,255,.75))
+  - .prof-pfp         (hardcoded border: 4px solid #ff8cba)
+  - .prof-pfp-edit    (hardcoded gradient pink)
+  - .prof-level-line  (hardcoded pink gradient pill)
+  - .socmed-btn       (hardcoded per-network solid colours)
+  - .nat-mood-badge   (hardcoded rgba(255,255,255,.15))
+  - .header-badge     (partially done — missing space/forest for some props)
+  - .deco-row         (plain emoji row, no glow)
+  - .section-title::after (hardcoded pink gradient line)
+
+PROBLEM C — Why header/tabs "look plain" even with overrides
+──────────────────────────────────────────────────────────────
+The existing overrides DO set dark backgrounds on header for dark themes.
+But the header has no translucency — `rgba(0,8,20,.92)` is 92% opaque.
+At that opacity, the FX layer (z:0) is completely hidden behind it.
+The fix: reduce header background opacity to ~0.75–0.82 and add a subtle
+backdrop-filter. Because we fixed the stacking context issue in the previous
+patch (using the `translate` property instead of `transform` in fadeDown),
+adding backdrop-filter to the header is now safe — it will NOT trap the
+header's children into a new stacking context in the same way, because
+the header itself is already a stacking context via z-index:10.
+(backdrop-filter does create a stacking context, but since the header IS
+already one at z:10, the only effect is that children are scoped to it —
+which they already were. This is acceptable.)
+
+PROBLEM D — .profile-section has a hardcoded opaque pink gradient
+───────────────────────────────────────────────────────────────────
+.profile-section uses `background: radial-gradient(…, #fff5fa, #ffe6f3)`
+(line 3909). This is a solid white-pink gradient that completely covers the
+FX layer regardless of theme. Each theme needs a translucent override so the
+dark/atmospheric background shows through.
+
+PROBLEM E — Avatar clipping problems
+──────────────────────────────────────
+Three separate issues compound:
+
+  E1. `.prof-pfp` has `overflow: hidden` (correct — clips the img to circle).
+      But avatar-frames.css correctly overrides it to `overflow: visible !important`
+      when `.nat-frame-host` is added. The problem is that `.prof-pfp-wrap`
+      (the PARENT of .prof-pfp) has NO position:relative + overflow:visible
+      guard. If the wrap ever gets overflow:hidden from a parent or theme rule,
+      frame layers that bleed outside the 104px box get clipped at the wrap.
+
+  E2. `.prof-pfp img` has `width:100%; height:100%; object-fit:cover` which
+      is correct for circular masking. BUT if the img is loaded BEFORE the
+      `.prof-pfp` element has a defined height (e.g., if display:grid +
+      place-items:center causes a race), the img can render as a tall
+      unconstrained rectangle. The fix: add `aspect-ratio:1/1` and
+      `flex-shrink:0` to the img.
+
+  E3. The `.nat-frame` is positioned `inset:0` relative to `.nat-frame-host`
+      (which is `.prof-pfp` itself). The frame's layers use `inset: -14%` etc.
+      to bleed outside. This requires the frame HOST element (`.prof-pfp`) to
+      have `overflow: visible`. The avatar-frames.css rule at line 828 sets
+      this correctly. The remaining risk is any theme override that adds
+      `overflow: hidden !important` to `.prof-pfp` — don't do this.
+
+  E4. For msg-pfp-avatar (38px chat avatars), the frame layers bleed outside
+      the 38px box. The grid column is `40px` wide. If the grid parent has
+      `overflow:hidden`, the frame bleeds are clipped. Solution: the `.msg-meta`
+      grid does NOT have overflow:hidden, so it's safe. But the `.message-bubble`
+      parent DOES have `overflow:hidden` (line 671). This clips frame layers.
+      Fix: the bubble's overflow:hidden must be changed to `overflow:visible`
+      for avatar column only — achieved by restructuring the pfp out of the
+      overflow-clipped zone OR by adding a clip-path instead of overflow:hidden
+      on the bubble.
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 1 — CSS CUSTOM PROPERTY TOKEN SYSTEM
+═══════════════════════════════════════════════════════════════════════════════
+
+Strategy: each body.theme-X sets a block of --t-* tokens on itself.
+All surfaces read from these tokens. Adding a new surface to the theme
+system requires ONE new rule using the tokens — not six.
+*/
+
+/* ── Default (pink/pastel) theme tokens — same as current base styles ── */
+:root,
+body {
+  /* Glass surface background */
+  --t-surface:        rgba(255, 255, 255, 0.78);
+  --t-surface-deep:   rgba(255, 255, 255, 0.92);
+  --t-surface-subtle: rgba(255, 255, 255, 0.45);
+
+  /* Header background */
+  --t-header-bg:      rgba(255, 255, 255, 0.70);
+
+  /* Primary accent colour (used for borders, active states, glows) */
+  --t-accent:         #f7b8c8;
+  --t-accent-rgb:     247, 184, 200;
+  --t-accent-glow:    rgba(247, 184, 200, 0.35);
+  --t-accent-2:       #b89cff;
+
+  /* Text colours */
+  --t-text:           #4a2e3a;
+  --t-text-sub:       #8c6a76;
+  --t-text-on-accent: #fff;
+
+  /* Active tab gradient */
+  --t-tab-active-from: #ff5c8a;
+  --t-tab-active-to:   #c79bff;
+
+  /* Card border */
+  --t-border:         rgba(255, 255, 255, 0.80);
+  --t-border-accent:  rgba(247, 184, 200, 0.50);
+
+  /* Section title line */
+  --t-title-line-from: #f7b8c8;
+
+  /* Avatar ring colour */
+  --t-avatar-ring:    #ff8cba;
+  --t-avatar-ring-rgb: 255, 140, 186;
+
+  /* Profile section background */
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%,  rgba(255,180,210,.45) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(184,156,255,.35) 0%, transparent 60%),
+    rgba(255, 248, 252, 0.72);
+
+  /* Backdrop blur amount for glass surfaces */
+  --t-blur: 14px;
+
+  /* Shadow */
+  --t-shadow: rgba(180, 120, 160, 0.15);
+}
+
+
+/* ── CYBER theme tokens ───────────────────────────────────────────────── */
+body.theme-cyber {
+  --t-surface:        rgba(0, 20, 8, 0.72);
+  --t-surface-deep:   rgba(0, 10, 4, 0.90);
+  --t-surface-subtle: rgba(0, 40, 14, 0.45);
+  --t-header-bg:      rgba(0, 8, 20, 0.74);
+  --t-accent:         #00ff41;
+  --t-accent-rgb:     0, 255, 65;
+  --t-accent-glow:    rgba(0, 255, 65, 0.30);
+  --t-accent-2:       #00e5ff;
+  --t-text:           #b0ffb8;
+  --t-text-sub:       rgba(0, 255, 65, 0.65);
+  --t-text-on-accent: #001a00;
+  --t-tab-active-from: #003a10;
+  --t-tab-active-to:   #005518;
+  --t-border:         rgba(0, 255, 65, 0.18);
+  --t-border-accent:  rgba(0, 255, 65, 0.35);
+  --t-title-line-from: #00ff41;
+  --t-avatar-ring:    #00ff41;
+  --t-avatar-ring-rgb: 0, 255, 65;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(0,255,65,.08) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(0,200,180,.06) 0%, transparent 60%),
+    rgba(0, 8, 4, 0.75);
+  --t-shadow: rgba(0, 255, 65, 0.12);
+}
+
+/* ── SPACE theme tokens ───────────────────────────────────────────────── */
+body.theme-space {
+  --t-surface:        rgba(4, 0, 18, 0.72);
+  --t-surface-deep:   rgba(2, 0, 14, 0.90);
+  --t-surface-subtle: rgba(10, 0, 40, 0.45);
+  --t-header-bg:      rgba(0, 0, 12, 0.74);
+  --t-accent:         #a080ff;
+  --t-accent-rgb:     160, 128, 255;
+  --t-accent-glow:    rgba(120, 80, 220, 0.35);
+  --t-accent-2:       #60b8ff;
+  --t-text:           #c0aaff;
+  --t-text-sub:       rgba(192, 170, 255, 0.65);
+  --t-text-on-accent: #fff;
+  --t-tab-active-from: #1a0040;
+  --t-tab-active-to:   #4a00b0;
+  --t-border:         rgba(120, 80, 220, 0.22);
+  --t-border-accent:  rgba(160, 128, 255, 0.40);
+  --t-title-line-from: #a080ff;
+  --t-avatar-ring:    #7c4dff;
+  --t-avatar-ring-rgb: 124, 77, 255;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(100,50,200,.18) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(0,100,200,.14) 0%, transparent 60%),
+    rgba(2, 0, 14, 0.75);
+  --t-shadow: rgba(100, 60, 200, 0.18);
+}
+
+/* ── HELL theme tokens ────────────────────────────────────────────────── */
+body.theme-hell {
+  --t-surface:        rgba(20, 3, 3, 0.72);
+  --t-surface-deep:   rgba(12, 2, 2, 0.92);
+  --t-surface-subtle: rgba(40, 5, 5, 0.45);
+  --t-header-bg:      rgba(18, 2, 2, 0.74);
+  --t-accent:         #ff6622;
+  --t-accent-rgb:     255, 102, 34;
+  --t-accent-glow:    rgba(255, 69, 0, 0.35);
+  --t-accent-2:       #ff2200;
+  --t-text:           #ffbb88;
+  --t-text-sub:       rgba(255, 150, 80, 0.65);
+  --t-text-on-accent: #fff;
+  --t-tab-active-from: #8b0000;
+  --t-tab-active-to:   #cc2200;
+  --t-border:         rgba(255, 69, 0, 0.20);
+  --t-border-accent:  rgba(255, 102, 34, 0.40);
+  --t-title-line-from: #ff6622;
+  --t-avatar-ring:    #ff4500;
+  --t-avatar-ring-rgb: 255, 69, 0;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(255,50,0,.12) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(180,0,0,.10) 0%, transparent 60%),
+    rgba(12, 2, 2, 0.78);
+  --t-shadow: rgba(255, 50, 0, 0.15);
+}
+
+/* ── HEAVEN theme tokens ──────────────────────────────────────────────── */
+body.theme-heaven {
+  --t-surface:        rgba(255, 252, 240, 0.72);
+  --t-surface-deep:   rgba(255, 250, 235, 0.90);
+  --t-surface-subtle: rgba(255, 245, 210, 0.45);
+  --t-header-bg:      rgba(255, 252, 240, 0.72);
+  --t-accent:         #c8a84b;
+  --t-accent-rgb:     200, 168, 75;
+  --t-accent-glow:    rgba(200, 168, 80, 0.35);
+  --t-accent-2:       #ffe77a;
+  --t-text:           #5a3a00;
+  --t-text-sub:       rgba(160, 120, 48, 0.75);
+  --t-text-on-accent: #3a2000;
+  --t-tab-active-from: #c8a84b;
+  --t-tab-active-to:   #ffe77a;
+  --t-border:         rgba(200, 168, 80, 0.28);
+  --t-border-accent:  rgba(200, 168, 80, 0.50);
+  --t-title-line-from: #c8a84b;
+  --t-avatar-ring:    #c8a84b;
+  --t-avatar-ring-rgb: 200, 168, 75;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(255,215,100,.25) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(200,220,255,.30) 0%, transparent 60%),
+    rgba(255, 252, 240, 0.72);
+  --t-shadow: rgba(200, 168, 80, 0.15);
+}
+
+/* ── FOREST theme tokens ──────────────────────────────────────────────── */
+body.theme-forest {
+  --t-surface:        rgba(6, 14, 6, 0.72);
+  --t-surface-deep:   rgba(4, 10, 4, 0.90);
+  --t-surface-subtle: rgba(10, 26, 10, 0.45);
+  --t-header-bg:      rgba(6, 14, 6, 0.74);
+  --t-accent:         #7dc870;
+  --t-accent-rgb:     125, 200, 112;
+  --t-accent-glow:    rgba(100, 200, 80, 0.30);
+  --t-accent-2:       #a8d850;
+  --t-text:           #c8f0b8;
+  --t-text-sub:       rgba(168, 216, 160, 0.68);
+  --t-text-on-accent: #0a1a00;
+  --t-tab-active-from: #1b5e20;
+  --t-tab-active-to:   #388e3c;
+  --t-border:         rgba(100, 160, 80, 0.20);
+  --t-border-accent:  rgba(125, 200, 112, 0.40);
+  --t-title-line-from: #7dc870;
+  --t-avatar-ring:    #4caf50;
+  --t-avatar-ring-rgb: 76, 175, 80;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(34,85,34,.18) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(50,120,20,.14) 0%, transparent 60%),
+    rgba(4, 10, 4, 0.75);
+  --t-shadow: rgba(80, 160, 60, 0.14);
+}
+
+/* ── Y2K theme tokens ─────────────────────────────────────────────────── */
+body.theme-y2k {
+  --t-surface:        rgba(240, 240, 255, 0.78);
+  --t-surface-deep:   rgba(230, 230, 255, 0.92);
+  --t-surface-subtle: rgba(220, 220, 255, 0.45);
+  --t-header-bg:      rgba(200, 200, 248, 0.72);
+  --t-accent:         #ff69b4;
+  --t-accent-rgb:     255, 105, 180;
+  --t-accent-glow:    rgba(255, 105, 180, 0.30);
+  --t-accent-2:       #00bcd4;
+  --t-text:           #222;
+  --t-text-sub:       #555;
+  --t-text-on-accent: #fff;
+  --t-tab-active-from: #ff69b4;
+  --t-tab-active-to:   #00bcd4;
+  --t-border:         rgba(170, 170, 210, 0.60);
+  --t-border-accent:  rgba(255, 105, 180, 0.45);
+  --t-title-line-from: #ff69b4;
+  --t-avatar-ring:    #ff69b4;
+  --t-avatar-ring-rgb: 255, 105, 180;
+  --t-profile-bg:
+    radial-gradient(120% 80% at 0% 0%, rgba(255,105,180,.20) 0%, transparent 60%),
+    radial-gradient(120% 80% at 100% 100%, rgba(0,188,212,.15) 0%, transparent 60%),
+    rgba(240, 240, 255, 0.78);
+  --t-shadow: rgba(170, 170, 210, 0.20);
+}
+
+
+/*
+═══════════════════════════════════════════════════════════════════════════════
+PART 2 — GLASS-IN-THE-WORLD SURFACES
+Theme tokens are now in place. All surfaces below read from them.
+These rules apply to all 6 special themes simultaneously.
+═══════════════════════════════════════════════════════════════════════════════
+*/
+
+/* ── Apply to all special themes at once ─────────────────────────────── */
+body.theme-cyber,
+body.theme-space,
+body.theme-hell,
+body.theme-heaven,
+body.theme-forest,
+body.theme-y2k {
+
+  /* ── HEADER — translucent glass, FX bleeds through ──────────────────── */
+  & header {
+    background: var(--t-header-bg) !important;
+    backdrop-filter: blur(var(--t-blur)) saturate(1.4) !important;
+    -webkit-backdrop-filter: blur(var(--t-blur)) saturate(1.4) !important;
+    border-bottom: 1px solid var(--t-border-accent) !important;
+    box-shadow:
+      0 8px 32px var(--t-shadow),
+      0 1px 0 var(--t-border) inset !important;
+  }
+
+  /* ── NAV TABS — glass pill bar ───────────────────────────────────────── */
+  & .nat-tabs-nav {
+    background: var(--t-surface) !important;
+    backdrop-filter: blur(var(--t-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--t-blur)) !important;
+    border-bottom: 1px solid var(--t-border) !important;
+    box-shadow: 0 4px 20px var(--t-shadow) !important;
+  }
+
+  & .nat-tab-btn {
+    background: var(--t-surface-subtle) !important;
+    color: var(--t-text) !important;
+    border: 1px solid var(--t-border) !important;
+  }
+
+  & .nat-tab-btn:hover {
+    background: var(--t-surface) !important;
+    border-color: var(--t-border-accent) !important;
+  }
+
+  & .nat-tab-btn.active {
+    background: linear-gradient(90deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+    color: var(--t-text-on-accent) !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 16px var(--t-accent-glow) !important;
+  }
+
+  /* ── CARDS (facts, gallery, react, message, achievements, hobbies) ── */
+  & .fact-card,
+  & .fact-card-v2 .fc-front,
+  & .fact-card-v2 .fc-back,
+  & .pic-card,
+  & .react-card,
+  & .msg-card,
+  & .achievements-grid > *,
+  & .hobby-card,
+  & .service-card,
+  & .premium-card,
+  & .gb-form,
+  & .leaderboard {
+    background: var(--t-surface) !important;
+    border-color: var(--t-border) !important;
+    color: var(--t-text) !important;
+    box-shadow: 0 8px 28px var(--t-shadow) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+
+  /* ── PROFILE SECTION wrapper ──────────────────────────────────────────── */
+  & .profile-section {
+    background: var(--t-profile-bg) !important;
+    border: 1px solid var(--t-border) !important;
+    box-shadow: 0 18px 50px var(--t-shadow), inset 0 0 0 1px var(--t-border) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+
+  /* ── PROFILE CARD ─────────────────────────────────────────────────────── */
+  & .prof-card {
+    background: var(--t-surface-subtle) !important;
+    border: 1px solid var(--t-border) !important;
+    box-shadow: 0 6px 20px var(--t-shadow), inset 0 0 0 1px var(--t-border) !important;
+  }
+
+  /* ── AVATAR RING — theme accent colour ───────────────────────────────── */
+  & .prof-pfp {
+    border-color: var(--t-avatar-ring) !important;
+    box-shadow:
+      0 6px 18px rgba(var(--t-avatar-ring-rgb), .40),
+      0 0 0 6px rgba(var(--t-avatar-ring-rgb), .12) !important;
+  }
+
+  & .prof-pfp-edit {
+    background: linear-gradient(135deg, var(--t-accent), var(--t-accent-2)) !important;
+    border-color: var(--t-surface-deep) !important;
+    box-shadow: 0 4px 12px var(--t-accent-glow) !important;
+  }
+
+  /* ── PROFILE LEVEL PILL ───────────────────────────────────────────────── */
+  & .prof-level-line {
+    background: linear-gradient(135deg,
+      rgba(var(--t-accent-rgb), 0.18),
+      rgba(var(--t-accent-rgb), 0.08)) !important;
+    color: var(--t-accent) !important;
+    border: 1px solid rgba(var(--t-accent-rgb), 0.30) !important;
+    box-shadow: none !important;
+  }
+
+  /* ── NAME INPUT in profile ─────────────────────────────────────────────── */
+  & .prof-name-input {
+    background: var(--t-surface-subtle) !important;
+    color: var(--t-text) !important;
+    border-color: var(--t-border) !important;
+  }
+  & .prof-name-input:focus {
+    border-color: var(--t-accent) !important;
+    box-shadow: 0 0 0 4px rgba(var(--t-accent-rgb), .15) !important;
+  }
+
+  /* ── MOOD BADGE ───────────────────────────────────────────────────────── */
+  & .nat-mood-badge {
+    background: rgba(var(--t-accent-rgb), 0.14) !important;
+    border-color: rgba(var(--t-accent-rgb), 0.28) !important;
+    color: var(--t-text) !important;
+  }
+
+  /* ── SECTION TITLE line ───────────────────────────────────────────────── */
+  & .section-title::after {
+    background: linear-gradient(to right, var(--t-title-line-from), transparent) !important;
+  }
+
+  /* ── HEADER BADGE pill ────────────────────────────────────────────────── */
+  & .header-badge {
+    background: rgba(var(--t-accent-rgb), 0.14) !important;
+    border-color: rgba(var(--t-accent-rgb), 0.40) !important;
+    color: var(--t-accent) !important;
+  }
+
+  /* ── DECO ROW (emoji decorations under name) ─────────────────────────── */
+  & .deco-row {
+    filter: drop-shadow(0 0 6px rgba(var(--t-accent-rgb), .55));
+  }
+
+  /* ── SOCIAL MEDIA BUTTONS — glass overlay instead of solid network colour */
+  & .socmed-btn {
+    box-shadow:
+      0 4px 14px var(--t-accent-glow),
+      0 0 0 1px rgba(var(--t-accent-rgb), 0.25) !important;
+    filter: brightness(0.88) saturate(0.7) !important;
+    /* Keep the individual network colours visible but muted under the theme */
+  }
+  & .socmed-btn:hover {
+    filter: brightness(1) saturate(1) !important;
+    box-shadow:
+      0 8px 22px var(--t-accent-glow),
+      0 0 0 2px rgba(var(--t-accent-rgb), 0.45) !important;
+  }
+
+  /* ── SEND / POST / ACTION BUTTONS ────────────────────────────────────── */
+  & .send-btn,
+  & .gb-post-btn,
+  & .big-reaction-btn,
+  & .service-btn,
+  & .see-more-btn,
+  & .rate-site-btn {
+    background: linear-gradient(135deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+    color: var(--t-text-on-accent) !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 18px var(--t-accent-glow) !important;
+  }
+
+  /* ── MU FLOATING BUTTON ───────────────────────────────────────────────── */
+  & .mu-toggle {
+    background: linear-gradient(135deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+    box-shadow: 0 6px 20px var(--t-accent-glow) !important;
+  }
+
+  /* ── MU PANEL ─────────────────────────────────────────────────────────── */
+  & .mu-body {
+    background: var(--t-surface-deep) !important;
+    border-color: var(--t-border) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+  }
+  & .mu-theme-btn,
+  & .mu-graphics-btn,
+  & .mu-special-btn,
+  & .mu-inv-btn,
+  & .mu-chibi button {
+    background: var(--t-surface-subtle) !important;
+    color: var(--t-text) !important;
+    border: 1px solid var(--t-border) !important;
+  }
+  & .mu-theme-btn.active,
+  & .mu-graphics-btn.active {
+    background: linear-gradient(90deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+    color: var(--t-text-on-accent) !important;
+    box-shadow: 0 0 10px var(--t-accent-glow) !important;
+  }
+  & .mu-title,
+  & .mu-section-head,
+  & .mu-divider {
+    color: var(--t-accent) !important;
+  }
+}
+
+/*
+  NOTE ON & NESTING: The CSS nesting above requires a browser that supports
+  native CSS nesting (Chrome 112+, Firefox 117+, Safari 17.2+). If you need
+  broader support, replace every `& .selector` with `body.theme-X .selector`
+  expanded for each theme. A preprocessor-free fallback version is included
+  below as PART 2B.
+*/
+
+
+/*
+═══════════════════════════════════════════════════════════════════════════════
+PART 2B — FALLBACK (no CSS nesting) — Only needed for older browser support.
+            If your site already uses the CSS-nesting version above, delete
+            this entire PART 2B block to avoid redundancy.
+═══════════════════════════════════════════════════════════════════════════════
+*/
+
+/* Header */
+body.theme-cyber header,
+body.theme-space header,
+body.theme-hell header,
+body.theme-heaven header,
+body.theme-forest header,
+body.theme-y2k header {
+  background: var(--t-header-bg) !important;
+  backdrop-filter: blur(var(--t-blur)) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(var(--t-blur)) saturate(1.4) !important;
+  border-bottom: 1px solid var(--t-border-accent) !important;
+  box-shadow:
+    0 8px 32px var(--t-shadow),
+    0 1px 0 var(--t-border) inset !important;
+}
+
+/* Nav tabs */
+body.theme-cyber .nat-tabs-nav,
+body.theme-space .nat-tabs-nav,
+body.theme-hell .nat-tabs-nav,
+body.theme-heaven .nat-tabs-nav,
+body.theme-forest .nat-tabs-nav,
+body.theme-y2k .nat-tabs-nav {
+  background: var(--t-surface) !important;
+  backdrop-filter: blur(var(--t-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--t-blur)) !important;
+  border-bottom: 1px solid var(--t-border) !important;
+  box-shadow: 0 4px 20px var(--t-shadow) !important;
+}
+body.theme-cyber .nat-tab-btn,
+body.theme-space .nat-tab-btn,
+body.theme-hell .nat-tab-btn,
+body.theme-heaven .nat-tab-btn,
+body.theme-forest .nat-tab-btn,
+body.theme-y2k .nat-tab-btn {
+  background: var(--t-surface-subtle) !important;
+  color: var(--t-text) !important;
+  border: 1px solid var(--t-border) !important;
+}
+body.theme-cyber .nat-tab-btn.active,
+body.theme-space .nat-tab-btn.active,
+body.theme-hell .nat-tab-btn.active,
+body.theme-heaven .nat-tab-btn.active,
+body.theme-forest .nat-tab-btn.active,
+body.theme-y2k .nat-tab-btn.active {
+  background: linear-gradient(90deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+  color: var(--t-text-on-accent) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 16px var(--t-accent-glow) !important;
+}
+
+/* Cards */
+body.theme-cyber .fact-card, body.theme-space .fact-card, body.theme-hell .fact-card,
+body.theme-heaven .fact-card, body.theme-forest .fact-card, body.theme-y2k .fact-card,
+body.theme-cyber .fact-card-v2 .fc-front, body.theme-space .fact-card-v2 .fc-front,
+body.theme-hell .fact-card-v2 .fc-front, body.theme-heaven .fact-card-v2 .fc-front,
+body.theme-forest .fact-card-v2 .fc-front, body.theme-y2k .fact-card-v2 .fc-front,
+body.theme-cyber .fact-card-v2 .fc-back, body.theme-space .fact-card-v2 .fc-back,
+body.theme-hell .fact-card-v2 .fc-back, body.theme-heaven .fact-card-v2 .fc-back,
+body.theme-forest .fact-card-v2 .fc-back, body.theme-y2k .fact-card-v2 .fc-back,
+body.theme-cyber .react-card, body.theme-space .react-card, body.theme-hell .react-card,
+body.theme-heaven .react-card, body.theme-forest .react-card, body.theme-y2k .react-card,
+body.theme-cyber .msg-card, body.theme-space .msg-card, body.theme-hell .msg-card,
+body.theme-heaven .msg-card, body.theme-forest .msg-card, body.theme-y2k .msg-card,
+body.theme-cyber .service-card, body.theme-space .service-card, body.theme-hell .service-card,
+body.theme-heaven .service-card, body.theme-forest .service-card, body.theme-y2k .service-card,
+body.theme-cyber .premium-card, body.theme-space .premium-card, body.theme-hell .premium-card,
+body.theme-heaven .premium-card, body.theme-forest .premium-card, body.theme-y2k .premium-card,
+body.theme-cyber .gb-form, body.theme-space .gb-form, body.theme-hell .gb-form,
+body.theme-heaven .gb-form, body.theme-forest .gb-form, body.theme-y2k .gb-form,
+body.theme-cyber .leaderboard, body.theme-space .leaderboard, body.theme-hell .leaderboard,
+body.theme-heaven .leaderboard, body.theme-forest .leaderboard, body.theme-y2k .leaderboard {
+  background: var(--t-surface) !important;
+  border-color: var(--t-border) !important;
+  color: var(--t-text) !important;
+  box-shadow: 0 8px 28px var(--t-shadow) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Profile section */
+body.theme-cyber .profile-section,
+body.theme-space .profile-section,
+body.theme-hell .profile-section,
+body.theme-heaven .profile-section,
+body.theme-forest .profile-section,
+body.theme-y2k .profile-section {
+  background: var(--t-profile-bg) !important;
+  border: 1px solid var(--t-border) !important;
+  box-shadow: 0 18px 50px var(--t-shadow), inset 0 0 0 1px var(--t-border) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Prof card */
+body.theme-cyber .prof-card,
+body.theme-space .prof-card,
+body.theme-hell .prof-card,
+body.theme-heaven .prof-card,
+body.theme-forest .prof-card,
+body.theme-y2k .prof-card {
+  background: var(--t-surface-subtle) !important;
+  border: 1px solid var(--t-border) !important;
+  box-shadow: 0 6px 20px var(--t-shadow), inset 0 0 0 1px var(--t-border) !important;
+}
+
+/* Avatar ring */
+body.theme-cyber .prof-pfp,
+body.theme-space .prof-pfp,
+body.theme-hell .prof-pfp,
+body.theme-heaven .prof-pfp,
+body.theme-forest .prof-pfp,
+body.theme-y2k .prof-pfp {
+  border-color: var(--t-avatar-ring) !important;
+  box-shadow:
+    0 6px 18px rgba(var(--t-avatar-ring-rgb), .40),
+    0 0 0 6px rgba(var(--t-avatar-ring-rgb), .12) !important;
+}
+
+/* Edit button */
+body.theme-cyber .prof-pfp-edit,
+body.theme-space .prof-pfp-edit,
+body.theme-hell .prof-pfp-edit,
+body.theme-heaven .prof-pfp-edit,
+body.theme-forest .prof-pfp-edit,
+body.theme-y2k .prof-pfp-edit {
+  background: linear-gradient(135deg, var(--t-accent), var(--t-accent-2)) !important;
+  border-color: var(--t-surface-deep) !important;
+  box-shadow: 0 4px 12px var(--t-accent-glow) !important;
+}
+
+/* Level pill */
+body.theme-cyber .prof-level-line,
+body.theme-space .prof-level-line,
+body.theme-hell .prof-level-line,
+body.theme-heaven .prof-level-line,
+body.theme-forest .prof-level-line,
+body.theme-y2k .prof-level-line {
+  background: linear-gradient(135deg,
+    rgba(var(--t-accent-rgb), 0.18),
+    rgba(var(--t-accent-rgb), 0.08)) !important;
+  color: var(--t-accent) !important;
+  border: 1px solid rgba(var(--t-accent-rgb), 0.30) !important;
+  box-shadow: none !important;
+}
+
+/* Name input */
+body.theme-cyber .prof-name-input,
+body.theme-space .prof-name-input,
+body.theme-hell .prof-name-input,
+body.theme-heaven .prof-name-input,
+body.theme-forest .prof-name-input,
+body.theme-y2k .prof-name-input {
+  background: var(--t-surface-subtle) !important;
+  color: var(--t-text) !important;
+  border-color: var(--t-border) !important;
+}
+body.theme-cyber .prof-name-input:focus,
+body.theme-space .prof-name-input:focus,
+body.theme-hell .prof-name-input:focus,
+body.theme-heaven .prof-name-input:focus,
+body.theme-forest .prof-name-input:focus,
+body.theme-y2k .prof-name-input:focus {
+  border-color: var(--t-accent) !important;
+  box-shadow: 0 0 0 4px rgba(var(--t-accent-rgb), .15) !important;
+  background: var(--t-surface) !important;
+}
+
+/* Mood badge */
+body.theme-cyber .nat-mood-badge,
+body.theme-space .nat-mood-badge,
+body.theme-hell .nat-mood-badge,
+body.theme-heaven .nat-mood-badge,
+body.theme-forest .nat-mood-badge,
+body.theme-y2k .nat-mood-badge {
+  background: rgba(var(--t-accent-rgb), 0.14) !important;
+  border-color: rgba(var(--t-accent-rgb), 0.28) !important;
+  color: var(--t-text) !important;
+}
+
+/* Section title line */
+body.theme-cyber .section-title::after,
+body.theme-space .section-title::after,
+body.theme-hell .section-title::after,
+body.theme-heaven .section-title::after,
+body.theme-forest .section-title::after,
+body.theme-y2k .section-title::after {
+  background: linear-gradient(to right, var(--t-title-line-from), transparent) !important;
+}
+
+/* Header badge */
+body.theme-cyber .header-badge,
+body.theme-space .header-badge,
+body.theme-hell .header-badge,
+body.theme-heaven .header-badge,
+body.theme-forest .header-badge,
+body.theme-y2k .header-badge {
+  background: rgba(var(--t-accent-rgb), 0.14) !important;
+  border-color: rgba(var(--t-accent-rgb), 0.40) !important;
+  color: var(--t-accent) !important;
+}
+
+/* Deco row glow */
+body.theme-cyber .deco-row,
+body.theme-space .deco-row,
+body.theme-hell .deco-row,
+body.theme-heaven .deco-row,
+body.theme-forest .deco-row,
+body.theme-y2k .deco-row {
+  filter: drop-shadow(0 0 6px rgba(var(--t-accent-rgb), .55));
+}
+
+/* Social media buttons */
+body.theme-cyber .socmed-btn,
+body.theme-space .socmed-btn,
+body.theme-hell .socmed-btn,
+body.theme-heaven .socmed-btn,
+body.theme-forest .socmed-btn,
+body.theme-y2k .socmed-btn {
+  box-shadow:
+    0 4px 14px var(--t-accent-glow),
+    0 0 0 1px rgba(var(--t-accent-rgb), 0.25) !important;
+  filter: brightness(0.85) saturate(0.65) !important;
+}
+body.theme-cyber .socmed-btn:hover,
+body.theme-space .socmed-btn:hover,
+body.theme-hell .socmed-btn:hover,
+body.theme-heaven .socmed-btn:hover,
+body.theme-forest .socmed-btn:hover,
+body.theme-y2k .socmed-btn:hover {
+  filter: brightness(1) saturate(1) !important;
+  box-shadow:
+    0 8px 22px var(--t-accent-glow),
+    0 0 0 2px rgba(var(--t-accent-rgb), 0.45) !important;
+}
+
+/* Action buttons */
+body.theme-cyber .send-btn,   body.theme-space .send-btn,   body.theme-hell .send-btn,
+body.theme-heaven .send-btn,  body.theme-forest .send-btn,  body.theme-y2k .send-btn,
+body.theme-cyber .gb-post-btn, body.theme-space .gb-post-btn, body.theme-hell .gb-post-btn,
+body.theme-heaven .gb-post-btn, body.theme-forest .gb-post-btn, body.theme-y2k .gb-post-btn,
+body.theme-cyber .see-more-btn, body.theme-space .see-more-btn, body.theme-hell .see-more-btn,
+body.theme-heaven .see-more-btn, body.theme-forest .see-more-btn, body.theme-y2k .see-more-btn {
+  background: linear-gradient(135deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+  color: var(--t-text-on-accent) !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 18px var(--t-accent-glow) !important;
+}
+
+/* MU floating button */
+body.theme-cyber .mu-toggle,   body.theme-space .mu-toggle,   body.theme-hell .mu-toggle,
+body.theme-heaven .mu-toggle,  body.theme-forest .mu-toggle,  body.theme-y2k .mu-toggle {
+  background: linear-gradient(135deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+  box-shadow: 0 6px 20px var(--t-accent-glow) !important;
+}
+
+/* MU panel */
+body.theme-cyber .mu-body,   body.theme-space .mu-body,   body.theme-hell .mu-body,
+body.theme-heaven .mu-body,  body.theme-forest .mu-body,  body.theme-y2k .mu-body {
+  background: var(--t-surface-deep) !important;
+  border-color: var(--t-border) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+body.theme-cyber .mu-theme-btn,    body.theme-space .mu-theme-btn,
+body.theme-hell .mu-theme-btn,     body.theme-heaven .mu-theme-btn,
+body.theme-forest .mu-theme-btn,   body.theme-y2k .mu-theme-btn,
+body.theme-cyber .mu-graphics-btn, body.theme-space .mu-graphics-btn,
+body.theme-hell .mu-graphics-btn,  body.theme-heaven .mu-graphics-btn,
+body.theme-forest .mu-graphics-btn, body.theme-y2k .mu-graphics-btn,
+body.theme-cyber .mu-special-btn,  body.theme-space .mu-special-btn,
+body.theme-hell .mu-special-btn,   body.theme-heaven .mu-special-btn,
+body.theme-forest .mu-special-btn, body.theme-y2k .mu-special-btn,
+body.theme-cyber .mu-inv-btn,      body.theme-space .mu-inv-btn,
+body.theme-hell .mu-inv-btn,       body.theme-heaven .mu-inv-btn,
+body.theme-forest .mu-inv-btn,     body.theme-y2k .mu-inv-btn,
+body.theme-cyber .mu-chibi button, body.theme-space .mu-chibi button,
+body.theme-hell .mu-chibi button,  body.theme-heaven .mu-chibi button,
+body.theme-forest .mu-chibi button, body.theme-y2k .mu-chibi button {
+  background: var(--t-surface-subtle) !important;
+  color: var(--t-text) !important;
+  border: 1px solid var(--t-border) !important;
+}
+body.theme-cyber .mu-theme-btn.active,    body.theme-space .mu-theme-btn.active,
+body.theme-hell .mu-theme-btn.active,     body.theme-heaven .mu-theme-btn.active,
+body.theme-forest .mu-theme-btn.active,   body.theme-y2k .mu-theme-btn.active,
+body.theme-cyber .mu-graphics-btn.active, body.theme-space .mu-graphics-btn.active,
+body.theme-hell .mu-graphics-btn.active,  body.theme-heaven .mu-graphics-btn.active,
+body.theme-forest .mu-graphics-btn.active, body.theme-y2k .mu-graphics-btn.active {
+  background: linear-gradient(90deg, var(--t-tab-active-from), var(--t-tab-active-to)) !important;
+  color: var(--t-text-on-accent) !important;
+  box-shadow: 0 0 10px var(--t-accent-glow) !important;
+}
+body.theme-cyber .mu-title,    body.theme-space .mu-title,   body.theme-hell .mu-title,
+body.theme-heaven .mu-title,   body.theme-forest .mu-title,  body.theme-y2k .mu-title,
+body.theme-cyber .mu-section-head,  body.theme-space .mu-section-head,
+body.theme-hell .mu-section-head,   body.theme-heaven .mu-section-head,
+body.theme-forest .mu-section-head, body.theme-y2k .mu-section-head,
+body.theme-cyber .mu-divider,  body.theme-space .mu-divider,  body.theme-hell .mu-divider,
+body.theme-heaven .mu-divider, body.theme-forest .mu-divider, body.theme-y2k .mu-divider {
+  color: var(--t-accent) !important;
+}
+
+
+/*
+═══════════════════════════════════════════════════════════════════════════════
+PART 3 — AVATAR CIRCULAR MASKING ARCHITECTURE FIX
+═══════════════════════════════════════════════════════════════════════════════
+
+ROOT CAUSES (from audit):
+
+  1. `.prof-pfp` has `overflow: hidden` — correct for circular img clip.
+     BUT avatar-frames.css line 828 sets `overflow: visible !important`
+     when `nat-frame-host` is added. This is correct.
+     RISK: any theme rule that re-adds `overflow: hidden` to `.prof-pfp`
+     will break the frame. Guard below prevents this.
+
+  2. `.prof-pfp img` — needs `aspect-ratio: 1/1` to prevent tall-rectangle
+     rendering when layout is in transition. Also needs `flex-shrink: 0`.
+
+  3. `.msg-pfp-avatar` sits inside `.message-bubble` which has
+     `overflow: hidden`. Frame layers on chat avatars get clipped.
+     The bubble needs a structural fix: the pfp must be outside the
+     clipping zone, OR the bubble must use `clip-path` instead of
+     `overflow:hidden`.
+
+  4. `.prof-pfp-wrap` — the wrap around the 104px avatar — needs explicit
+     `overflow: visible` and `contain: layout` so frame layers that bleed
+     outside the 104px are not clipped by the parent.
+*/
+
+/* ── 3A: Reliable circular avatar base ───────────────────────────────── */
+.prof-pfp {
+  /* Reinforce the circle clip */
+  border-radius: 50%;
+  overflow: hidden;          /* clips img to circle */
+}
+
+/* If the frame system is active, override overflow */
+.prof-pfp.nat-frame-host {
+  overflow: visible !important; /* frames must bleed outside */
+}
+
+/* Prevent img from going square or tall-rectangle */
+.prof-pfp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 1 / 1;   /* prevents unconstrained height on load */
+  flex-shrink: 0;
+  border-radius: 50%;     /* redundant safety — clips img even if parent overflows */
+}
+
+/* ── 3B: Wrap — never clips, is a proper positioning host ────────────── */
+.prof-pfp-wrap {
+  position: relative;
+  overflow: visible !important;  /* never clip frame layers */
+  /* contain: layout style paint; — DO NOT add contain here; it clips position:absolute children */
+}
+
+/* ── 3C: msg-pfp-avatar — fix frame clipping from parent bubble ──────── */
+/*
+  The message bubble has overflow:hidden at line 671.
+  We cannot remove it (it clips the ripple ::after pseudo-element).
+  Solution: pull the pfp avatar OUT of the clip zone using negative margin
+  and a positive padding that compensates — but this is fragile.
+  Better solution: the pfp sits in a grid cell that is NOT inside the
+  overflow:hidden zone. Looking at the HTML: .message-bubble wraps the
+  entire .msg-meta + .msg-text structure.
+
+  The clean fix is to give .message-bubble a clip-path instead of
+  overflow:hidden for the rounded-rectangle shape, allowing positioned
+  children to escape:
+*/
+.message-bubble {
+  /* Replace overflow:hidden with clip-path for the rounded border shape.
+     This allows absolutely-positioned frame layers to escape the bubble bounds
+     while the bubble itself still clips its content visually to the border-radius.
+     clip-path clips layout-independently (doesn't trap stacking contexts). */
+  overflow: visible;
+  clip-path: inset(0 round var(--bubble-radius, 18px));
+  /* IMPORTANT: clip-path does NOT create a stacking context (unlike overflow:hidden).
+     The ::after ripple pseudo-element still works because clip-path is applied
+     to the element's rendered output, not its stacking context. */
+}
+
+/* Override nat-frame-host for msg-pfp-avatar specifically */
+.msg-pfp-avatar.nat-frame-host {
+  overflow: visible !important;
+  /* z-index guard: frame layers on chat avatars must not bleed over text */
+  isolation: isolate;
+}
+
+/* ── 3D: Leaderboard avatars ─────────────────────────────────────────── */
+.lb-pfp-avatar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+}
+.lb-pfp-avatar.nat-frame-host {
+  overflow: visible !important;
+}
+.lb-pfp-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  aspect-ratio: 1 / 1;
+}
+
+/* ── 3E: .nat-frame sits inside the avatar element ───────────────────── */
+/*
+  .nat-frame has `inset: 0` — it fills the avatar element exactly.
+  Frame layers use `inset: -N%` to bleed outside.
+  The avatar element MUST be position:relative (already is for all three
+  avatar types) and MUST NOT have overflow:hidden when nat-frame-host is active.
+  Both conditions are handled above.
+*/
+
+/* ── 3F: z-index inside the avatar — frame must be above img ─────────── */
+.prof-pfp img,
+.msg-pfp-img,
+.lb-pfp-avatar img {
+  position: relative;
+  z-index: 0;  /* img is at 0 */
+}
+
+.nat-frame {
+  z-index: 2;  /* frame layers are above img — already set in avatar-frames.css */
+  /* Confirm: .nat-frame has z-index:2 in avatar-frames.css line 30. Good. */
+}
+
+/* Edit button must stay above frame layers */
+.prof-pfp-edit {
+  z-index: 10; /* above frame z:2 */
+  position: absolute;
+}
+
+
+/*
+═══════════════════════════════════════════════════════════════════════════════
+PART 4 — ARCHITECTURE GUARD: WHAT NOT TO DO
+═══════════════════════════════════════════════════════════════════════════════
+
+These are DEFENSIVE rules that prevent future mistakes.
+They also serve as inline documentation.
+
+✗ NEVER add overflow:hidden to a nat-frame-host element
+  → Frame layers use inset:-14% etc. which puts them OUTSIDE the host bounds.
+    overflow:hidden clips them. The avatar-frames.css override handles this
+    for the three known avatar containers. If you add a new avatar container,
+    add it to avatar-frames.css section 9 with overflow:visible !important.
+
+✗ NEVER add a theme override that hardcodes a fully-opaque background on header
+  → Use rgba(..., 0.72–0.80) max. At 0.92+ the FX layer is invisible behind it.
+    The new token --t-header-bg is set to 0.74 opacity for all dark themes.
+
+✗ NEVER set backdrop-filter on <body> or <html>
+  → backdrop-filter on body makes ALL fixed children blur each other,
+    creating an infinite blur loop. It also makes position:fixed elements
+    blur relative to body, not viewport.
+
+✗ NEVER add transform/filter/will-change to .theme-fx-layer itself
+  → These properties promote it to a stacking context and break the
+    fixed-positioning of its children (the canvas, black hole, nebula).
+    The layer must be a plain fixed box with only z-index and overflow:hidden.
+
+✗ NEVER use z-index without position
+  → z-index on a static element does nothing. Always pair with
+    position: relative/absolute/fixed/sticky.
+
+✗ NEVER add !important to z-index values
+  → !important on z-index makes it impossible to override in component
+    contexts. Use specificity (body.theme-X .element) instead.
+
+✗ NEVER put contain:layout or contain:paint on avatar wrappers
+  → `contain` clips absolutely-positioned children to the element's
+    box, just like overflow:hidden. Frame layers that bleed outside get
+    clipped. Only use `contain:style` on avatar hosts (which is safe).
+
+✗ NEVER set a fixed pixel height on .prof-pfp img without aspect-ratio
+  → If height is not constrained, the img can load as a tall rectangle
+    before CSS applies. Use `aspect-ratio:1/1` + `object-fit:cover`.
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 5 — SCALABLE LONG-TERM ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+Layer hierarchy (stable, matches last session's patch):
+  z: 9999  →  modals, cutscenes, loader
+  z:  999  →  toast, popups
+  z:  100  →  .mu-toggle, .mu-body (FAB)
+  z:   10  →  header, main, footer (content)
+  z:    0  →  .theme-fx-layer (FX background)
+  z:   -1  →  body background (implicit)
+
+Token usage pattern for adding new themed surfaces:
+  1. Add `background: var(--t-surface)` to the new element.
+  2. Add `color: var(--t-text)` and `border-color: var(--t-border)`.
+  3. That's it. All 6 themes are automatically covered.
+  4. If the surface needs special treatment in one theme only, add:
+       body.theme-hell .new-surface { --t-surface: rgba(30,5,5,.8); }
+     This overrides the token for that theme only, without touching the rule.
+
+Avatar frame system for future frames:
+  1. Define a new entry in FRAME_REGISTRY in avatar-frames.js with layer names.
+  2. Add CSS for .nat-frame--{id} .nat-frame__{layer} in avatar-frames.css.
+  3. Use only: transform, opacity, filter (for glow) — no layout properties.
+  4. Frame host setup (overflow:visible, isolation:isolate) is already
+     handled by .nat-frame-host in avatar-frames.css. No extra CSS needed.
+*/

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Professional Mode — natpyydev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- PROFESSIONAL MODE: completely isolated stylesheet — no crossover with main site -->
+    <link rel="stylesheet" href="professional-styles.css">
+    <!-- CINEMATIC PRESENTATION LAYER: overrides all meme/playful elements -->
+    <link rel="stylesheet" href="professional-mode-cinematic.css">
+    <!-- Gallery styles are injected at runtime by professional-cinematic-gallery.js -->
+
+    <style>
+        /* ── DIMENSION-ENTRY OVERLAY ────────────────────────────
+           Fades in when this page loads (we arrived via the black
+           fade from the main site). Briefly holds black, then
+           dissolves to reveal the Professional Mode intro.        */
+        #dimension-entry {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            background: #000;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.9s cubic-bezier(.77, 0, .175, 1);
+        }
+        #dimension-entry.dissolve { opacity: 0; }
+
+        /* ── BACK PORTAL ────────────────────────────────────────
+           Subtle fixed pill in bottom-left. Lets the user exit
+           back to the main site without disrupting the experience. */
+        #back-portal {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            z-index: 99998;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            color: rgba(0, 245, 255, 0.5);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: border-color 0.3s, color 0.3s, background 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            pointer-events: none;
+            animation: portalAppear 0.8s 4.2s forwards;
+        }
+        #back-portal:hover {
+            border-color: rgba(0, 245, 255, 0.6);
+            color: #00f5ff;
+            background: rgba(0, 245, 255, 0.07);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.15);
+        }
+        #back-portal .bp-arrow { font-size: 14px; line-height: 1; }
+        @keyframes portalAppear {
+            from { opacity: 0; transform: translateY(8px); pointer-events: none; }
+            to   { opacity: 1; transform: translateY(0);   pointer-events: auto; }
+        }
+
+        /* ── EXIT FADE OVERLAY (for going back) ─────────────── */
+        #exit-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999998;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(.77, 0, .175, 1);
+        }
+        #exit-overlay.active { opacity: 1; pointer-events: all; }
+    </style>
+</head>
+<body>
+
+    <!-- ── DIMENSION ENTRY (black hold that dissolves away) ── -->
+    <div id="dimension-entry"></div>
+
+    <!-- ── EXIT FADE (black cover for going back) ──────────── -->
+    <div id="exit-overlay"></div>
+
+    <!-- ── BACK TO MAIN SITE PORTAL ────────────────────────── -->
+    <button id="back-portal" onclick="exitToMainSite()">
+        <span class="bp-arrow">←</span>
+        Exit Professional Mode
+    </button>
+
+    <!-- ════════════════════════════════════════════════════════
+         ABOUT ME X — COMPLETELY UNMODIFIED EXPERIENCE BELOW
+         Everything below this line is the original About Me X
+         app. No JS systems are merged with the main site.
+    ═════════════════════════════════════════════════════════ -->
+
+    <!-- CUSTOM CURSOR -->
+    <div id="cursor"></div>
+    <div id="cursor-ring"></div>
+    <div id="progress-bar"></div>
+
+    <!-- CINEMATIC INTRO -->
+    <div id="intro">
+        <div id="intro-logo">Hello, I'm natpyydev</div>
+        <div id="intro-sub">Designer · Coder · Dreamer</div>
+        <div id="intro-line"></div>
+        <div id="intro-hint">Loading Professional Mode…</div>
+    </div>
+
+    <!-- CANVAS BG (particles) -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- TOP HALF: Sprite animation -->
+    <div id="phone-wrap">
+        <canvas id="phone-canvas"></canvas>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div id="hud-top">
+            <div class="hud-brand">Professional Mode</div>
+            <div class="hud-nav">
+                <span>Home</span>
+                <span>About</span>
+                <span>Contact</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="frame-counter">
+        <div class="fc-line"></div>
+        <div class="fc-num" id="fc-display">01</div>
+        <div class="fc-label">Frame</div>
+    </div>
+
+    <!-- INFO PANELS – alternating left/right -->
+    <div class="info-panel left" id="panel-0">
+        <div class="ip-eyebrow">Hometown</div>
+        <div class="ip-title">Born &amp; Raised</div>
+        <div class="ip-body">Grew up in the Philippines with dial‑up internet, rich &amp; poor food, and endless adventures.</div>
+        <span class="ip-accent">Muntinlupa City · 2009</span>
+    </div>
+    <div class="info-panel right" id="panel-1">
+        <div class="ip-eyebrow">Passion</div>
+        <div class="ip-title">I Speak<br>English &amp; Tagalog &amp; Javascript</div>
+        <div class="ip-body">Self‑taught developer who loves clean code, dark mode, and building things people actually use.</div>
+        <span class="ip-accent">999+ Years Coding</span>
+    </div>
+    <div class="info-panel left" id="panel-2">
+        <div class="ip-eyebrow">Secret Skill</div>
+        <div class="ip-title">Cube Master</div>
+        <div class="ip-body">Can solve a Rubik's Cube in under 45 seconds. It's all algorithms! Also great at parallel parking.</div>
+        <span class="ip-accent">3×3 Speed Cuber</span>
+    </div>
+    <div class="info-panel right" id="panel-3">
+        <div class="ip-eyebrow">Wanderlust</div>
+        <div class="ip-title">Next Stop:<br>Japan &amp; Iceland</div>
+        <div class="ip-body">Chasing northern lights, volcano hikes, and photographing puffins. Already visited 0 countries! lol</div>
+        <span class="ip-accent">0 Countries Visited lol</span>
+    </div>
+
+    <!-- BOTTOM HUD -->
+    <div id="hud-bottom">
+        <div class="scroll-hint">
+            <div class="scroll-arrow"></div>
+            <span>Scroll to Explore</span>
+        </div>
+        <div class="specs-row">
+            <div class="spec-item">
+                <div class="spec-val">∞</div>
+                <div class="spec-label">Curiosity</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-val">12</div>
+                <div class="spec-label">Waters / Day</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-val">74</div>
+                <div class="spec-label">Projects</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHOTO WRAP — FULL SCREEN COVER -->
+    <div id="photo-wrap">
+        <div id="photo-title"></div>
+        <canvas id="photo-canvas"></canvas>
+        <div id="photo-desc-overlay"></div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app">
+        <!-- SCROLL TRACK (drives the animation) -->
+        <div id="scroll-track"></div>
+
+        <!-- CONTENT SECTIONS -->
+        <div id="sections">
+
+            <!-- ── BELOW-THE-FOLD BRIDGE SECTION ── -->
+            <div id="photo-below">
+                <div class="pbelow-eyebrow">— natpyydev</div>
+                <h2 class="pbelow-headline">
+                    <span class="gtext">Designer.</span><br>
+                    <span class="gtext">Coder.</span><br>
+                    <span class="gtext">Dreamer.</span>
+                </h2>
+                <p class="pbelow-tagline">
+                    From Muntinlupa City to the internet. Self-taught, always building, fuelled by curiosity and 12 glasses of water a day.
+                </p>
+                <div class="bio-chips">
+                    <div class="bio-chip highlight"><span class="chip-icon">🇵🇭</span> Philippines</div>
+                    <div class="bio-chip"><span class="chip-icon">💻</span> Self-Taught Dev</div>
+                    <div class="bio-chip"><span class="chip-icon">🎨</span> Editor &amp; Designer</div>
+                    <div class="bio-chip"><span class="chip-icon">🧊</span> 3×3 Speed Cuber</div>
+                    <div class="bio-chip"><span class="chip-icon">🎵</span> Indie Rock Fan</div>
+                    <div class="bio-chip"><span class="chip-icon">✈️</span> Future Traveller</div>
+                    <div class="bio-chip"><span class="chip-icon">🍜</span> Ramen Enthusiast</div>
+                    <div class="bio-chip"><span class="chip-icon">🌙</span> Night Owl</div>
+                </div>
+                <div class="neon-divider"></div>
+            </div>
+
+            <!-- SKILLS TICKER -->
+            <div class="skills-ticker-wrap">
+                <div class="skills-ticker">
+                    <div class="ticker-item"><span>✦</span> JavaScript</div>
+                    <div class="ticker-item"><span>✦</span> HTML &amp; CSS</div>
+                    <div class="ticker-item"><span>✦</span> Video Editing</div>
+                    <div class="ticker-item"><span>✦</span> UI Design</div>
+                    <div class="ticker-item"><span>✦</span> Speed Cubing</div>
+                    <div class="ticker-item"><span>✦</span> Dark Mode Only</div>
+                    <div class="ticker-item"><span>✦</span> Lo-Fi Beats</div>
+                    <div class="ticker-item"><span>✦</span> Parallel Parking</div>
+                    <div class="ticker-item"><span>✦</span> Hotdog Burner</div>
+                    <!-- duplicate for seamless loop -->
+                    <div class="ticker-item"><span>✦</span> JavaScript</div>
+                    <div class="ticker-item"><span>✦</span> HTML &amp; CSS</div>
+                    <div class="ticker-item"><span>✦</span> Video Editing</div>
+                    <div class="ticker-item"><span>✦</span> UI Design</div>
+                    <div class="ticker-item"><span>✦</span> Speed Cubing</div>
+                    <div class="ticker-item"><span>✦</span> Dark Mode Only</div>
+                    <div class="ticker-item"><span>✦</span> Lo-Fi Beats</div>
+                    <div class="ticker-item"><span>✦</span> Parallel Parking</div>
+                    <div class="ticker-item"><span>✦</span> Hotdog Burner</div>
+                </div>
+            </div>
+
+            <!-- HERO -->
+            <section class="section hero-first">
+                <div class="hero-text">
+                    <div class="ht-eyebrow">A Little About Me X</div>
+                    <h1 class="ht-h1"><span class="ht-grad">Hi, I'm<br>natpyydev</span></h1>
+                    <p class="ht-body">Designer, coder, water-only enthusiast. Here are some things that make me tick.</p>
+                    <a href="#" class="cta-btn">Get In Touch <span>→</span></a>
+                </div>
+            </section>
+
+            <!-- Feature Grid -->
+            <section class="section" style="background:rgba(0,245,255,0.01)">
+                <div class="feature-grid">
+                    <div class="feat-card">
+                        <span class="fc-icon">🎵</span>
+                        <div class="fc-num-label">01 — Music</div>
+                        <div class="fc-title">Indie Rock &amp; Lo‑Fi Beats</div>
+                        <div class="fc-desc">My playlist runs from Arctic Monkeys to lo‑fi hip hop. Perfect coding companions.</div>
+                    </div>
+                    <div class="feat-card" style="transition-delay:0.1s">
+                        <span class="fc-icon">🍜</span>
+                        <div class="fc-num-label">02 — Food</div>
+                        <div class="fc-title">Ramen Connoisseur</div>
+                        <div class="fc-desc">I've tried over 0 different ramen shops. Tonkotsu is my love language.</div>
+                    </div>
+                    <div class="feat-card" style="transition-delay:0.2s">
+                        <span class="fc-icon">✈️</span>
+                        <div class="fc-num-label">03 — Travel</div>
+                        <div class="fc-title">Bucket List Explorer</div>
+                        <div class="fc-desc">Next stops: Iceland, Japan, Peru. I already have 0 countries under my belt :(</div>
+                    </div>
+                    <div class="feat-card" style="transition-delay:0.3s">
+                        <span class="fc-icon">🙃</span>
+                        <div class="fc-num-label">04 — Pet Peeves</div>
+                        <div class="fc-title">Slow Wi‑Fi &amp; Silent Treatment</div>
+                        <div class="fc-desc">I feel personally attacked by loading spinners. Also, people who ignore me.</div>
+                    </div>
+                    <div class="feat-card" style="transition-delay:0.4s">
+                        <span class="fc-icon">🤹</span>
+                        <div class="fc-num-label">05 — Quirks</div>
+                        <div class="fc-title">Can Edit Anything</div>
+                        <div class="fc-desc">Editing professional. I can edit too realistic stuff.</div>
+                    </div>
+                    <div class="feat-card" style="transition-delay:0.5s">
+                        <span class="fc-icon">😆</span>
+                        <div class="fc-num-label">06 — Fails</div>
+                        <div class="fc-title">Tried to Cook Once</div>
+                        <div class="fc-desc">The hotdog was burnt and raw on each side. A true achievement.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="section">
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-num c1">74</div>
+                        <div class="stat-label">Projects Shipped</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num c2">12</div>
+                        <div class="stat-label">Waters / Day</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num c3">∞</div>
+                        <div class="stat-label">Curiosity</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTACT SECTION -->
+            <section class="section">
+                <div class="contact-panel">
+                    <div class="contact-eyebrow">— Let's Connect</div>
+                    <h2 class="contact-headline">Want to<br><span class="gm">Work Together?</span></h2>
+                    <p class="contact-sub">I'm always open to new projects, ideas, and people who share the same energy. Hit me up.</p>
+                    <div class="contact-links">
+                        <a href="#" class="contact-link primary">✉ Email Me</a>
+                        <a href="#" class="contact-link">𝕏 Twitter / X</a>
+                        <a href="#" class="contact-link">⌥ GitHub</a>
+                        <a href="#" class="contact-link">◈ Portfolio</a>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <div class="footer-brand">Professional Mode</div>
+                <div class="footer-sub">© 2026 natpyydev — All Rights Reserved</div>
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- ── PROFESSIONAL MODE: ISOLATED JS SYSTEMS ────────────
+         These are the ONLY scripts on this page.
+         No main site JS. No shared loaders. No merged systems.  -->
+    <script src="professional-script.js"></script>
+    <script src="professional-photo-me.js"></script>
+    <!-- CINEMATIC PRESENTATION ENGINE: must load last, after all badge/achievement JS -->
+    <script src="professional-mode-cinematic.js"></script>
+
+    <!--
+      ★ ARCHITECTURE NOTE (gallery):
+        gallery-data.js   → shared data layer (PICS array, window.NAT_GALLERY)
+        professional-cinematic-gallery.js → reads NAT_GALLERY, renders cinematic UI
+        professional-gallery-orb.js is NO LONGER loaded here;
+        its Firebase photo-wall features remain available via photowall.js on index.html.
+    -->
+    <script src="gallery-data.js"></script>
+    <script src="professional-cinematic-gallery.js"></script>
+
+    <script>
+    // ── Observer for below-fold content ───────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        const extraObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) e.target.classList.add('in-view');
+            });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll(
+            '.pbelow-eyebrow,.pbelow-headline,.pbelow-tagline,.bio-chips,.neon-divider,' +
+            '.contact-eyebrow,.contact-headline,.contact-sub,.contact-links'
+        ).forEach(el => extraObserver.observe(el));
+    });
+
+    // ── DIMENSION ENTRY: dissolve the black entry overlay ─
+    // Waits until the page is painted, then fades out the entry black.
+    // This gives the seamless feeling that you "entered another universe".
+    window.addEventListener('load', () => {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                const entry = document.getElementById('dimension-entry');
+                if (entry) entry.classList.add('dissolve');
+            }, 120);
+        });
+    });
+
+    // ── EXIT BACK TO MAIN SITE ────────────────────────────
+    function exitToMainSite() {
+        const overlay = document.getElementById('exit-overlay');
+        if (overlay) {
+            overlay.classList.add('active');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 720);
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+    </script>
+
+</body>
+</html>

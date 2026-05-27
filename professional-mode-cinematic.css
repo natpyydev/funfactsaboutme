@@ -1,0 +1,1072 @@
+/* ═══════════════════════════════════════════════════════════════════
+   PROFESSIONAL MODE — CINEMATIC PRESENTATION LAYER
+   Drop this AFTER professional-styles.css. Overrides all playful
+   presentation while keeping every functional system intact.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── FONT IMPORTS ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ── CSS VARIABLES (cinematic palette) ────────────────────────────── */
+:root {
+  --pro-bg:          #020408;
+  --pro-surface:     rgba(255,255,255,0.028);
+  --pro-border:      rgba(255,255,255,0.07);
+  --pro-border-glow: rgba(0,220,255,0.22);
+  --pro-cyan:        #00dcff;
+  --pro-cyan-dim:    rgba(0,220,255,0.12);
+  --pro-gold:        #c8a96e;
+  --pro-gold-dim:    rgba(200,169,110,0.12);
+  --pro-white:       rgba(255,255,255,0.92);
+  --pro-muted:       rgba(255,255,255,0.36);
+  --pro-subtle:      rgba(255,255,255,0.14);
+  --pro-red:         #ff3860;
+  --pro-red-dim:     rgba(255,56,96,0.10);
+  --pro-scan-speed:  6s;
+  --pro-font-display:'Syne', sans-serif;
+  --pro-font-mono:   'Space Mono', monospace;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   1. KILL ALL MEME / PLAYFUL GLOBAL PATTERNS
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Remove confetti, emoji rain, goofy popups, sparkle bursts */
+.confetti-wrapper,
+.emoji-rain,
+.meme-popup,
+.sparkle-burst,
+.bongocat-wrap,
+.chibi-wrap,
+.stars-hearts-overlay,
+.reaction-popup--meme,
+[class*="meme-"],
+[class*="goofy-"],
+[class*="silly-"],
+[id*="bongocat"],
+[id*="chibi"],
+#stars-container,
+#hearts-container {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Suppress any built-in badge-pop goofy animations */
+.badge-heartbeat,
+.badge-wave,
+.badge-glitter,
+.badge-rainbow-spin,
+.badge-inferno,
+.badge-orbit,
+.badge-megaphone,
+.badge-starburst,
+.badge-moonrise,
+.badge-prism,
+.badge-concert,
+.badge-mod,
+.badge-dev,
+.badge-bug,
+.badge-badgemaker {
+  animation: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   2. SCANLINE OVERLAY (atmospheric only)
+   ───────────────────────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   3. CINEMATIC BADGE GRID (replaces any meme badge display)
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Badge pill — base */
+.pro-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px 5px 9px;
+  background: var(--pro-surface);
+  border: 1px solid var(--pro-border);
+  border-radius: 2px;
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--pro-muted);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.4s, color 0.4s, background 0.4s;
+  backdrop-filter: blur(6px);
+}
+.pro-badge-pill::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--pro-cyan);
+  opacity: 0.5;
+}
+.pro-badge-pill:hover {
+  border-color: var(--pro-border-glow);
+  color: var(--pro-white);
+  background: var(--pro-cyan-dim);
+}
+.pro-badge-pill .badge-icon {
+  font-size: 13px;
+  filter: grayscale(0.4) brightness(0.9);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   4. HOLOGRAPHIC UNLOCK CARD (used by JS overlay system)
+   ───────────────────────────────────────────────────────────────────── */
+
+#pro-holo-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999990;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 32px;
+  gap: 0;
+}
+
+/* Notification stack */
+#pro-toast-stack {
+  position: fixed;
+  top: 88px;
+  right: 28px;
+  z-index: 999991;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 340px;
+}
+
+/* Single toast */
+.pro-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(2,4,8,0.88);
+  border: 1px solid var(--pro-border);
+  border-left: 2px solid var(--pro-cyan);
+  border-radius: 2px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  pointer-events: auto;
+  transform: translateX(120%) translateZ(0);
+  opacity: 0;
+  transition: transform 0.55s cubic-bezier(0.16,1,0.3,1),
+              opacity   0.55s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+}
+.pro-toast.pro-toast--in {
+  transform: translateX(0) translateZ(0);
+  opacity: 1;
+}
+.pro-toast.pro-toast--out {
+  transform: translateX(120%) translateZ(0);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.4,0,1,1),
+              opacity   0.4s ease;
+}
+
+/* Toast shimmer line at top */
+.pro-toast::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--pro-cyan), transparent);
+  animation: pro-shimmer-line 2.4s ease-out 0.5s forwards;
+}
+@keyframes pro-shimmer-line {
+  from { left: -100%; opacity: 0.8; }
+  to   { left: 100%;  opacity: 0;   }
+}
+
+/* Toast glow pulse */
+.pro-toast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  box-shadow: 0 0 0 0 rgba(0,220,255,0);
+  animation: pro-toast-pulse 1.2s ease-out 0.3s;
+  pointer-events: none;
+}
+@keyframes pro-toast-pulse {
+  0%   { box-shadow: 0 0 0  0 rgba(0,220,255,0.35); }
+  60%  { box-shadow: 0 0 0 14px rgba(0,220,255,0);  }
+  100% { box-shadow: 0 0 0 14px rgba(0,220,255,0);  }
+}
+
+/* Toast icon area */
+.pro-toast__icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pro-cyan-dim);
+  border: 1px solid rgba(0,220,255,0.18);
+  border-radius: 2px;
+  font-size: 18px;
+  position: relative;
+}
+.pro-toast__icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: radial-gradient(circle at center, rgba(0,220,255,0.25), transparent 70%);
+  animation: pro-icon-flare 1.8s ease-out forwards;
+}
+@keyframes pro-icon-flare {
+  0%   { opacity: 1; transform: scale(1.3); }
+  100% { opacity: 0; transform: scale(1);   }
+}
+
+/* Toast gold variant (legendary) */
+.pro-toast--gold {
+  border-left-color: var(--pro-gold);
+}
+.pro-toast--gold::before {
+  background: linear-gradient(90deg, transparent, var(--pro-gold), transparent);
+}
+.pro-toast--gold::after {
+  animation: pro-toast-pulse-gold 1.2s ease-out 0.3s;
+}
+@keyframes pro-toast-pulse-gold {
+  0%   { box-shadow: 0 0 0  0 rgba(200,169,110,0.35); }
+  60%  { box-shadow: 0 0 0 14px rgba(200,169,110,0);  }
+  100% { box-shadow: 0 0 0 14px rgba(200,169,110,0);  }
+}
+.pro-toast--gold .pro-toast__icon {
+  background: var(--pro-gold-dim);
+  border-color: rgba(200,169,110,0.22);
+}
+
+/* Toast body */
+.pro-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+.pro-toast__label {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+.pro-toast--gold .pro-toast__label { color: var(--pro-gold); }
+.pro-toast__title {
+  font-family: var(--pro-font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pro-white);
+  letter-spacing: 0.3px;
+  margin-bottom: 3px;
+  line-height: 1.25;
+}
+.pro-toast__desc {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  color: var(--pro-muted);
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Progress bar drain */
+.pro-toast__timer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--pro-border);
+  overflow: hidden;
+}
+.pro-toast__timer-bar {
+  height: 100%;
+  background: var(--pro-cyan);
+  transform-origin: left;
+  transform: scaleX(1);
+  transition: transform linear;
+}
+.pro-toast--gold .pro-toast__timer-bar { background: var(--pro-gold); }
+
+/* ─────────────────────────────────────────────────────────────────────
+   5. HOLOGRAPHIC BADGE UNLOCK MODAL
+   ───────────────────────────────────────────────────────────────────── */
+
+#pro-badge-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999992;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  perspective: 1200px;
+}
+
+.pro-badge-modal {
+  position: relative;
+  width: min(480px, 92vw);
+  background: rgba(2,4,8,0.96);
+  border: 1px solid rgba(0,220,255,0.18);
+  border-radius: 4px;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: auto;
+  transform: scale(0.82) rotateX(10deg) translateZ(0);
+  opacity: 0;
+  transition: transform 0.7s cubic-bezier(0.16,1,0.3,1),
+              opacity   0.7s cubic-bezier(0.16,1,0.3,1);
+  backdrop-filter: blur(32px);
+  box-shadow:
+    0 0  60px rgba(0,220,255,0.08),
+    0 0 120px rgba(0,220,255,0.04),
+    inset 0 0 40px rgba(0,220,255,0.03);
+}
+.pro-badge-modal.pro-badge-modal--in {
+  transform: scale(1) rotateX(0deg) translateZ(0);
+  opacity: 1;
+}
+.pro-badge-modal.pro-badge-modal--out {
+  transform: scale(0.9) rotateX(-6deg) translateZ(0);
+  opacity: 0;
+  transition: transform 0.4s ease,
+              opacity   0.4s ease;
+}
+
+/* Holo scan line */
+.pro-badge-modal__scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--pro-cyan), transparent);
+  opacity: 0;
+  top: 0;
+  animation: pro-scan-anim 2s ease-out 0.5s forwards;
+  z-index: 3;
+}
+@keyframes pro-scan-anim {
+  0%   { top:   0%; opacity: 0.9; }
+  85%  { top: 100%; opacity: 0.6; }
+  100% { top: 100%; opacity: 0;   }
+}
+
+/* Grid overlay */
+.pro-badge-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,220,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,220,255,0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Corner decorators */
+.pro-badge-modal::after {
+  content: '';
+  position: absolute;
+  top: 12px; left: 12px; right: 12px; bottom: 12px;
+  border: 1px solid rgba(0,220,255,0.06);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Modal header bar */
+.pro-badge-modal__header {
+  position: relative;
+  z-index: 2;
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--pro-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pro-badge-modal__sys {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+  opacity: 0.7;
+}
+.pro-badge-modal__close {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--pro-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border: 1px solid var(--pro-border);
+  background: none;
+  color: var(--pro-muted);
+  transition: color 0.3s, border-color 0.3s;
+  pointer-events: auto;
+}
+.pro-badge-modal__close:hover {
+  color: var(--pro-white);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Modal hero zone */
+.pro-badge-modal__hero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 28px 32px;
+  gap: 20px;
+}
+
+/* Icon orb */
+.pro-badge-modal__orb {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pro-badge-modal__orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0,220,255,0.3);
+  animation: pro-orb-spin 8s linear infinite;
+}
+.pro-badge-modal__orb-ring::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: 50%;
+  width: 4px; height: 4px;
+  background: var(--pro-cyan);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--pro-cyan);
+}
+.pro-badge-modal__orb-ring:nth-child(2) {
+  inset: 8px;
+  border-color: rgba(0,220,255,0.15);
+  animation-direction: reverse;
+  animation-duration: 12s;
+}
+@keyframes pro-orb-spin {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+.pro-badge-modal__icon {
+  position: relative;
+  z-index: 1;
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(0,220,255,0.5));
+  animation: pro-icon-float 3s ease-in-out infinite;
+}
+.pro-badge-modal__icon--gold {
+  filter: drop-shadow(0 0 12px rgba(200,169,110,0.7));
+}
+@keyframes pro-icon-float {
+  0%,100% { transform: translateY(0);   }
+  50%     { transform: translateY(-6px); }
+}
+
+/* Badge name */
+.pro-badge-modal__acquired {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+  opacity: 0.8;
+}
+.pro-badge-modal__acquired--gold { color: var(--pro-gold); }
+
+.pro-badge-modal__name {
+  font-family: var(--pro-font-display);
+  font-size: clamp(20px, 4vw, 26px);
+  font-weight: 700;
+  color: var(--pro-white);
+  text-align: center;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.pro-badge-modal__desc {
+  font-family: var(--pro-font-mono);
+  font-size: 11px;
+  color: var(--pro-muted);
+  text-align: center;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  max-width: 340px;
+}
+
+/* How-to strip */
+.pro-badge-modal__howto {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  color: var(--pro-cyan);
+  opacity: 0.65;
+  text-align: center;
+  padding: 12px 20px;
+  border-top: 1px solid var(--pro-border);
+  border-bottom: 1px solid var(--pro-border);
+  width: 100%;
+  letter-spacing: 0.5px;
+}
+
+/* Footer data strip */
+.pro-badge-modal__footer {
+  position: relative;
+  z-index: 2;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--pro-border);
+}
+.pro-badge-modal__tag {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--pro-subtle);
+  text-transform: uppercase;
+}
+.pro-badge-modal__dismiss {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--pro-cyan);
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 16px;
+  border: 1px solid rgba(0,220,255,0.2);
+  background: var(--pro-cyan-dim);
+  transition: background 0.3s, border-color 0.3s;
+  pointer-events: auto;
+}
+.pro-badge-modal__dismiss:hover {
+  background: rgba(0,220,255,0.2);
+  border-color: rgba(0,220,255,0.5);
+}
+
+/* ── Gold modal variant ── */
+.pro-badge-modal--gold {
+  border-color: rgba(200,169,110,0.22);
+  box-shadow:
+    0 0  60px rgba(200,169,110,0.10),
+    0 0 120px rgba(200,169,110,0.05),
+    inset 0 0 40px rgba(200,169,110,0.04);
+}
+.pro-badge-modal--gold .pro-badge-modal__scan {
+  background: linear-gradient(90deg, transparent, var(--pro-gold), transparent);
+}
+.pro-badge-modal--gold::before {
+  background-image:
+    linear-gradient(rgba(200,169,110,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,169,110,0.04) 1px, transparent 1px);
+}
+.pro-badge-modal--gold .pro-badge-modal__orb-ring {
+  border-color: rgba(200,169,110,0.35);
+}
+.pro-badge-modal--gold .pro-badge-modal__orb-ring::before {
+  background: var(--pro-gold);
+  box-shadow: 0 0 8px var(--pro-gold);
+}
+.pro-badge-modal--gold .pro-badge-modal__dismiss {
+  color: var(--pro-gold);
+  border-color: rgba(200,169,110,0.25);
+  background: var(--pro-gold-dim);
+}
+.pro-badge-modal--gold .pro-badge-modal__dismiss:hover {
+  background: rgba(200,169,110,0.22);
+  border-color: rgba(200,169,110,0.5);
+}
+
+/* ── Backdrop dimmer ── */
+.pro-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999991;
+  background: rgba(0,0,0,0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  backdrop-filter: blur(3px);
+}
+.pro-modal-backdrop.pro-modal-backdrop--in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   6. CINEMATIC PARTICLE BURST CANVAS
+   ───────────────────────────────────────────────────────────────────── */
+
+#pro-particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 999989;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   7. ACHIEVEMENT UNLOCK HUD BAR (brief cinematic bar at top)
+   ───────────────────────────────────────────────────────────────────── */
+
+.pro-hud-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 999993;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--pro-cyan), var(--pro-cyan), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 0 12px var(--pro-cyan), 0 0 24px rgba(0,220,255,0.4);
+}
+.pro-hud-bar--in {
+  transform: scaleX(1);
+}
+.pro-hud-bar--gold {
+  background: linear-gradient(90deg, transparent, var(--pro-gold), var(--pro-gold), transparent);
+  box-shadow: 0 0 12px var(--pro-gold), 0 0 24px rgba(200,169,110,0.4);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   8. REACTION / GALLERY INTERACTION FEEDBACK
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Replace emoji pop with minimal floating tag */
+.pro-reaction-float {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999988;
+  font-family: var(--pro-font-mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+  text-shadow: 0 0 12px rgba(0,220,255,0.6);
+  opacity: 0;
+  transform: translateY(0) scale(0.9);
+  animation: pro-reaction-rise 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes pro-reaction-rise {
+  0%   { opacity: 0;   transform: translateY(0px)  scale(0.8); }
+  15%  { opacity: 1;   transform: translateY(-10px) scale(1);   }
+  80%  { opacity: 0.7; transform: translateY(-40px) scale(1);   }
+  100% { opacity: 0;   transform: translateY(-60px) scale(0.95);}
+}
+
+/* Holographic ring that appears at click point */
+.pro-click-ring {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999987;
+  width: 0; height: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0,220,255,0.7);
+  transform: translate(-50%, -50%) scale(0);
+  animation: pro-ring-expand 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes pro-ring-expand {
+  0%   { width:  0px; height:  0px; opacity: 0.9; }
+  100% { width: 80px; height: 80px; opacity: 0;   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   9. LEVEL-UP / PRESTIGE ANNOUNCEMENT
+   ───────────────────────────────────────────────────────────────────── */
+
+.pro-level-announce {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.88);
+  z-index: 999994;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s, transform 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.pro-level-announce.pro-level-announce--in {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.pro-level-announce.pro-level-announce--out {
+  opacity: 0;
+  transform: translate(-50%, -52%) scale(0.95);
+}
+.pro-level-announce__eyebrow {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+  margin-bottom: 12px;
+  opacity: 0.75;
+}
+.pro-level-announce__num {
+  font-family: var(--pro-font-display);
+  font-size: clamp(64px, 12vw, 120px);
+  font-weight: 800;
+  letter-spacing: -4px;
+  line-height: 1;
+  background: linear-gradient(135deg, #fff 20%, var(--pro-cyan) 55%, rgba(0,220,255,0.4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(0,220,255,0.4));
+}
+.pro-level-announce__label {
+  font-family: var(--pro-font-mono);
+  font-size: 11px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--pro-muted);
+  margin-top: 10px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   10. ACHIEVEMENT LOG (sidebar drawer, replaces any meme list)
+   ───────────────────────────────────────────────────────────────────── */
+
+#pro-log-drawer {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: min(360px, 92vw);
+  background: rgba(2,4,8,0.97);
+  border-left: 1px solid var(--pro-border);
+  z-index: 999995;
+  transform: translateX(100%);
+  transition: transform 0.55s cubic-bezier(0.16,1,0.3,1);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(24px);
+  overflow: hidden;
+}
+#pro-log-drawer.pro-log-drawer--open {
+  transform: translateX(0);
+}
+
+#pro-log-drawer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,220,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,220,255,0.025) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.pro-log-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--pro-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.pro-log-header__title {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--pro-cyan);
+}
+.pro-log-header__close {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--pro-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid var(--pro-border);
+  background: none;
+  transition: color 0.3s, border-color 0.3s;
+}
+.pro-log-header__close:hover {
+  color: var(--pro-white);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.pro-log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,220,255,0.2) transparent;
+}
+
+.pro-log-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--pro-surface);
+  border: 1px solid var(--pro-border);
+  border-left: 2px solid var(--pro-cyan);
+  border-radius: 2px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.pro-log-item:hover {
+  background: var(--pro-cyan-dim);
+  border-color: var(--pro-border-glow);
+}
+.pro-log-item--gold {
+  border-left-color: var(--pro-gold);
+}
+.pro-log-item--gold:hover {
+  background: var(--pro-gold-dim);
+  border-color: rgba(200,169,110,0.3);
+}
+
+.pro-log-item__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0,220,255,0.3));
+}
+.pro-log-item__body { flex: 1; min-width: 0; }
+.pro-log-item__name {
+  font-family: var(--pro-font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pro-white);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pro-log-item__time {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--pro-subtle);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.pro-log-item__new {
+  width: 6px;
+  height: 6px;
+  background: var(--pro-cyan);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--pro-cyan);
+  animation: pro-dot-pulse 2s ease-in-out infinite;
+}
+@keyframes pro-dot-pulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.3; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   11. VIP EFFECTS (cinematic, no goofy overlays)
+   ───────────────────────────────────────────────────────────────────── */
+
+.pro-vip-aura {
+  position: fixed;
+  inset: 0;
+  z-index: 999986;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(200,169,110,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+.pro-vip-aura--active { opacity: 1; }
+
+/* VIP username plate */
+.pro-vip-plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: linear-gradient(90deg, rgba(200,169,110,0.12), rgba(200,169,110,0.06));
+  border: 1px solid rgba(200,169,110,0.22);
+  border-radius: 2px;
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--pro-gold);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   12. QUEST / CHALLENGE COMPLETION (replaces meme celebration)
+   ───────────────────────────────────────────────────────────────────── */
+
+.pro-quest-complete {
+  position: fixed;
+  bottom: 88px;
+  left: 28px;
+  z-index: 999988;
+  max-width: 320px;
+  padding: 20px;
+  background: rgba(2,4,8,0.92);
+  border: 1px solid var(--pro-border);
+  border-bottom: 2px solid var(--pro-cyan);
+  border-radius: 2px;
+  backdrop-filter: blur(16px);
+  transform: translateY(24px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1),
+              opacity   0.5s;
+}
+.pro-quest-complete.pro-quest-complete--in {
+  transform: translateY(0);
+  opacity: 1;
+}
+.pro-quest-complete__label {
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--pro-cyan);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+.pro-quest-complete__title {
+  font-family: var(--pro-font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pro-white);
+}
+.pro-quest-complete__xp {
+  font-family: var(--pro-font-mono);
+  font-size: 10px;
+  color: var(--pro-gold);
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   13. SYSTEM SOUNDS MUTED INDICATOR (visual note)
+   ───────────────────────────────────────────────────────────────────── */
+
+.pro-sound-indicator {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999996;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(2,4,8,0.8);
+  border: 1px solid var(--pro-border);
+  border-radius: 2px;
+  font-family: var(--pro-font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--pro-muted);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.pro-sound-indicator::before {
+  content: '◈';
+  color: var(--pro-cyan);
+  font-size: 10px;
+}
+.pro-sound-indicator--active { opacity: 1; }
+
+/* ─────────────────────────────────────────────────────────────────────
+   14. MOBILE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  #pro-toast-stack {
+    top: auto;
+    bottom: 80px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  .pro-badge-modal {
+    width: 92vw;
+  }
+
+  .pro-badge-modal__hero {
+    padding: 28px 20px 24px;
+  }
+
+  #pro-log-drawer {
+    width: 100vw;
+  }
+
+  .pro-quest-complete {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    bottom: 80px;
+  }
+
+  .pro-sound-indicator {
+    bottom: 12px;
+    right: 12px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   15. SMOOTH REVEAL KEYFRAMES (used by JS)
+   ───────────────────────────────────────────────────────────────────── */
+
+@keyframes pro-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes pro-glow-pulse {
+  0%,100% { filter: drop-shadow(0 0  6px rgba(0,220,255,0.4)); }
+  50%     { filter: drop-shadow(0 0 18px rgba(0,220,255,0.8)); }
+}
+
+@keyframes pro-gold-pulse {
+  0%,100% { filter: drop-shadow(0 0  6px rgba(200,169,110,0.4)); }
+  50%     { filter: drop-shadow(0 0 18px rgba(200,169,110,0.8)); }
+}

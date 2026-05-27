@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>natnat's hidden corner 🎀</title>
+
+  <!-- FONTS -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- MAIN STYLES -->
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/plates.css">
+
+<link rel="stylesheet" href="style-new.css">
+<link rel="stylesheet" href="cutscene-new.css">
+
+  <!-- MAP -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+
+  <!-- GITHUB BUTTONS -->
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  <!-- AVATAR SYSTEM -->
+  <link rel="stylesheet" href="./avatar-frames/avatar-frames.css">
+  <link rel="stylesheet" href="avatar-fix.css">
+
+  <!-- THEME SYSTEM -->
+  <link rel="stylesheet" href="theme-system-v2.css">
+  <link rel="stylesheet" href="theme-fx-dual-layer.css">
+
+  <!-- PATCHES -->
+
+  <!-- PRESTIGE SYSTEM -->
+  <link rel="stylesheet" href="./prestige-system/styles/prestige-layout.css">
+  <link rel="stylesheet" href="./prestige-system/styles/badges.css">
+  <link rel="stylesheet" href="./prestige-system/styles/particles.css">
+  <link rel="stylesheet" href="./prestige-system/styles/mobile-fixes.css">
+  <link rel="stylesheet" href="css/all-patches.css">
+  <!-- All 8 bug fixes -->
+<link rel="stylesheet" href="all-fixes.css">
+<script src="all-fixes.js" defer></script>
+
+
+<style>
+/* ── Sort controls ── */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 0;
+}
+.section-header-row .section-title,
+.section-header-row .react-title {
+  margin-bottom: 0;
+}
+.react-header-row {
+  margin-bottom: 8px;
+}
+.sort-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #e8e8f0;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+  transition: border-color .2s ease;
+}
+.sort-select:hover,
+.sort-select:focus {
+  border-color: rgba(255,255,255,0.3);
+  background-color: rgba(255,255,255,0.10);
+}
+/* ── Trading hobby image (1 image like sports) ── */
+[data-hobby="trading"] .hobby-img-wrap {
+  aspect-ratio: 16/7;
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-content">
+    <div class="loader-chibi" id="loaderChibi">🎀</div>
+    <h1 class="logo" id="loaderLogo">nat.exe</h1>
+    <p class="loader-sub" id="loaderSub">loading cuteness… please wait 🌸</p>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+    <div class="loader-steps" id="loaderSteps">
+      <span class="ls-step" id="ls1">🌷 setting up</span>
+      <span class="ls-step" id="ls2">💗 loading friends</span>
+      <span class="ls-step" id="ls3">🎮 almost there</span>
+    </div>
+    <div class="loader-theme-pick" id="loaderThemePick">
+      <div class="ltp-label">pick a vibe ✨</div>
+      <div class="ltp-opts">
+        <button class="ltp-btn" data-theme="pink" title="Pink">🌸</button>
+        <button class="ltp-btn" data-theme="purple" title="Purple">💜</button>
+        <button class="ltp-btn" data-theme="light" title="Light">☀️</button>
+        <button class="ltp-btn" data-theme="dark" title="Dark">🌙</button>
+      </div>
+    </div>
+    <button class="loader-enter-btn" id="loaderEnterBtn"
+            onclick="loaderEnter()"
+            style="opacity:0;pointer-events:none;transition:opacity 0.5s ease">
+      let's go →
+    </button>
+  </div>
+</div>
+<script>
+  // Apply theme early; customise loader for special seasonal themes
+  (function() {
+    var t = localStorage.getItem('natnat-theme') || 'pink';
+    document.body.setAttribute('data-theme', t);
+
+    // ── Special seasonal loader ──
+    var themeOverride = localStorage.getItem('nat-theme-override');
+    var loader = document.getElementById('loader');
+    if (loader) {
+      if (themeOverride === 'underwater') {
+        loader.classList.add('loader-underwater');
+        var logo = document.getElementById('loaderLogo');
+        var sub  = document.getElementById('loaderSub');
+        var chibi = document.getElementById('loaderChibi');
+        var steps1 = document.getElementById('ls1');
+        var steps2 = document.getElementById('ls2');
+        var steps3 = document.getElementById('ls3');
+        var pick  = document.getElementById('loaderThemePick');
+        if (logo)  logo.textContent  = 'the.archive';
+        if (sub)   sub.textContent   = 'diving into the deep… 🌊';
+        if (chibi) chibi.textContent = '🌊';
+        if (steps1) steps1.textContent = '🫧 descending…';
+        if (steps2) steps2.textContent = '🐠 finding the signal…';
+        if (steps3) steps3.textContent = '📼 loading memories…';
+        if (pick)  pick.style.display = 'none'; // hide theme picker underwater
+      } else if (themeOverride === 'christmas') {
+        loader.classList.add('loader-christmas');
+        var logo2 = document.getElementById('loaderLogo');
+        var sub2  = document.getElementById('loaderSub');
+        var chibi2 = document.getElementById('loaderChibi');
+        var s1 = document.getElementById('ls1');
+        var s2 = document.getElementById('ls2');
+        var s3 = document.getElementById('ls3');
+        if (logo2)  logo2.textContent  = '🎄 nat.exe';
+        if (sub2)   sub2.textContent   = 'ho ho ho… loading christmas 🎅';
+        if (chibi2) chibi2.textContent = '🎅';
+        if (s1) s1.textContent = '❄️ setting up decorations…';
+        if (s2) s2.textContent = '🎁 loading friends…';
+        if (s3) s3.textContent = '🦌 almost there!';
+      }
+    }
+
+    document.querySelectorAll('.ltp-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.theme === t);
+      b.onclick = function() {
+        document.body.setAttribute('data-theme', b.dataset.theme);
+        localStorage.setItem('natnat-theme', b.dataset.theme);
+        document.querySelectorAll('.ltp-btn').forEach(function(x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        showEnterBtn();
+      };
+    });
+    // Animate loader steps
+    ['ls1','ls2','ls3'].forEach(function(id, i) {
+      setTimeout(function() {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('visible');
+      }, 400 + i * 700);
+    });
+    // Auto-show enter button after steps finish
+    setTimeout(showEnterBtn, 2800);
+  })();
+
+  var _loaderDone = false;
+  function showEnterBtn() {
+    var btn = document.getElementById('loaderEnterBtn');
+    if (!btn) return;
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  }
+  function loaderEnter() {
+    if (_loaderDone) return;
+    _loaderDone = true;
+    var l = document.getElementById('loader');
+    if (!l) return;
+    l.style.transition = 'opacity 0.4s ease';
+    l.style.opacity = '0';
+    l.style.pointerEvents = 'none';
+    setTimeout(function() { l.style.display = 'none'; }, 420);
+    // Underwater: launch cutscene HERE (inside user gesture so autoplay works)
+    if (localStorage.getItem('nat-theme-override') === 'underwater') {
+      var _uwTries = 0;
+      var _tryLaunch = function() {
+        if (typeof window._launchWaterCutsceneNow === 'function') {
+          window._launchWaterCutsceneNow();
+        } else if (_uwTries < 20) {
+          _uwTries++;
+          setTimeout(_tryLaunch, 150);
+        }
+      };
+      setTimeout(_tryLaunch, 300);
+    }
+  }
+</script>
+<audio id="sfxType" src="audio/type.mp3" preload="auto"></audio>
+
+<audio id="bgMusic" muted loop>
+  <source src="audio/Cozy%20Clicks.mp3" type="audio/mpeg">
+</audio>
+
+<div class="bg"></div>
+
+<header>
+  <div class="header-badge">✨ welcome to my world 😈✨</div>
+  <h1>hi, i'm <span>Natnat</span> 🎀</h1>
+  <p class="subtitle">click around, have fun, and don't be a stranger! 👀</p>
+  <div class="deco-row">
+    <span class="bounce" style="animation-delay:0s">🌸</span>
+    <span class="bounce" style="animation-delay:0.2s">💗</span>
+    <span class="bounce" style="animation-delay:0.4s">🌷</span>
+    <span class="bounce" style="animation-delay:0.6s">🍓</span>
+    <span class="bounce" style="animation-delay:0.8s">🎀</span>
+  </div>
+
+  <div class="header-controls-row">
+    <div id="themeIndicator" class="theme-indicator" title="current theme">🌸🌙</div>
+  </div>
+
+  <!-- GitHub buttons moved to 🔗 Socials tab — see tabs.js -->
+  <div id="visitorCounter" style="font-size:12px;opacity:0;transition:opacity 0.6s ease;margin-top:6px;color:var(--text-sub,#a0607a)"></div>
+</header>
+<div id="tabsTopAnchor"></div>
+
+<main>
+
+  <!-- #8 Fun Facts — redesigned reveal cards -->
+  <section class="facts-section">
+    <h2 class="section-title">🌷 fun facts about me</h2>
+    <p class="section-sub">tap a card to flip · 4 little secrets ✨</p>
+    <div class="facts-grid">
+      <button class="fact-card-v2" type="button" style="--fc-1:#ff7eb6;--fc-2:#c47bff" onclick="toggleFactCard(this)">
+        <span class="fc-front">
+          <span class="fc-num">01</span>
+          <span class="fc-tag">tap me 👀</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">im a very random person, depends sa mood</span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#ffb38a;--fc-2:#ff7eb6" onclick="toggleFactCard(this)">
+        <span class="fc-front">
+          <span class="fc-num">02</span>
+          <span class="fc-tag">tap me 💗</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">i'm a very busy person</span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#7ee7c1;--fc-2:#7ec8ff" onclick="toggleFactCard(this)">
+        <span class="fc-front">
+          <span class="fc-num">03</span>
+          <span class="fc-tag">tap me 💅</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">cute ako :></span>
+        </span>
+      </button>
+      <button class="fact-card-v2" type="button" style="--fc-1:#c79bff;--fc-2:#ff9bcb" onclick="toggleFactCard(this)">
+        <span class="fc-front">
+          <span class="fc-num">04</span>
+          <span class="fc-tag">tap me 🤔</span>
+        </span>
+        <span class="fc-back">
+          <span class="fc-text">Materialistic person (Money, sino banaan ayaw ng pera)</span>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- #4 Photo Gallery — Photo Wall style with reactions -->
+  <section class="gallery-section">
+    <div class="section-header-row">
+        <h2 class="section-title">📷 photos · react to each</h2>
+        <select class="sort-select" id="gallerySort" onchange="window.sortGallery(this.value)">
+          <option value="default">Default</option>
+          <option value="most-reacted">Most reacted</option>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </div>
+    <p class="section-sub">double-tap a photo to react ✨ · last one is special 👀</p>
+    <div class="photos-wall-grid" id="photosWallGrid"></div>
+  </section>
+
+  <!-- Rate Me -->
+  <section class="react-section">
+    <div class="react-card">
+      <div class="section-header-row react-header-row">
+            <h2 class="react-title">💅 rate po :></h2>
+            <select class="sort-select" id="reactSort" onchange="window.sortReactions(this.value)">
+              <option value="default">Default</option>
+              <option value="top">Most votes</option>
+              <option value="az">A → Z</option>
+            </select>
+          </div>
+      <p class="react-sub">after mong tiisin yung lahat ng 'to, ano na feel mo? 😭</p>
+      <div class="react-buttons">
+        <button class="big-reaction-btn" onclick="bigReact(this,'🙀 lAaH',0)"><span class="emoji">😍</span><span class="label">Obsessed</span><span class="cnt" id="cnt-0">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'😭 Jijemon tlgA',1)"><span class="emoji">😭</span><span class="label">Di ko kaya</span><span class="cnt" id="cnt-1">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'💅 Slay hehe',2)"><span class="emoji">💅</span><span class="label">Slay</span><span class="cnt" id="cnt-2">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'🥺 ofc',3)"><span class="emoji">🥺</span><span class="label">Ang cute</span><span class="cnt" id="cnt-3">0</span></button>
+        <button class="big-reaction-btn" onclick="bigReact(this,'😆 ano toh lol',4)"><span class="emoji">😆</span><span class="label">Lol</span><span class="cnt" id="cnt-4">0</span></button>
+      </div>
+    </div>
+  </section>
+
+<!-- 🚗 SERVICES -->
+<section class="services-section">
+  <h2 class="section-title">🚗 services & offers</h2>
+
+  <div class="services-grid">
+
+    <!-- DRIVING -->
+    <div class="service-card">
+      <h3>Driving Lesson</h3>
+
+      <!-- 🚲 Bike -->
+      <div class="service-row" data-id="bike">
+        <span>🚲 Bike — ₱100</span>
+        <div class="service-actions">
+          <button onclick="rateService('bike', this)">⭐</button>
+          <button onclick="heartService('bike', this)">❤️</button>
+          <button class="service-btn" onclick="book('Bike lesson')">Book</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-bike">0</span> · ❤️ <span id="heart-bike">0</span></div>
+      </div>
+
+      <!-- 🛵 E-bike -->
+      <div class="service-row" data-id="ebike">
+        <span>🛵 E-bike — ₱200</span>
+        <div class="service-actions">
+          <button onclick="rateService('ebike', this)">⭐</button>
+          <button onclick="heartService('ebike', this)">❤️</button>
+          <button class="service-btn" onclick="book('E-bike lesson')">Book</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-ebike">0</span> · ❤️ <span id="heart-ebike">0</span></div>
+      </div>
+
+      <!-- 🏍 Motor Auto -->
+      <div class="service-row" data-id="motor-auto">
+        <span>🏍 Motor (Automatic)</span>
+        <div class="service-actions">
+          <button onclick="rateService('motor-auto', this)">⭐</button>
+          <button onclick="heartService('motor-auto', this)">❤️</button>
+          <button class="service-btn" onclick="book('Motor Automatic lesson')">Teach me</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-motor-auto">0</span> · ❤️ <span id="heart-motor-auto">0</span></div>
+      </div>
+
+      <!-- 🏍 Motor Manual -->
+      <div class="service-row" data-id="motor-manual">
+        <span>🏍 Motor (Manual)</span>
+        <div class="service-actions">
+          <button onclick="rateService('motor-manual', this)">⭐</button>
+          <button onclick="heartService('motor-manual', this)">❤️</button>
+          <button class="service-btn" onclick="book('Motor Manual lesson')">Teach me</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-motor-manual">0</span> · ❤️ <span id="heart-motor-manual">0</span></div>
+      </div>
+
+      <!-- 🚗 Car Auto -->
+      <div class="service-row" data-id="car-auto">
+        <span>🚗 Car (Automatic)</span>
+        <div class="service-actions">
+          <button onclick="rateService('car-auto', this)">⭐</button>
+          <button onclick="heartService('car-auto', this)">❤️</button>
+          <button class="service-btn" onclick="book('Car Automatic lesson')">Book</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-car-auto">0</span> · ❤️ <span id="heart-car-auto">0</span></div>
+      </div>
+
+      <!-- 🚗 Car Manual -->
+      <div class="service-row" data-id="car-manual">
+        <span>🚗 Car (Manual)</span>
+        <div class="service-actions">
+          <button onclick="rateService('car-manual', this)">⭐</button>
+          <button onclick="heartService('car-manual', this)">❤️</button>
+          <button class="service-btn" onclick="book('Car Manual lesson')">Book</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-car-manual">0</span> · ❤️ <span id="heart-car-manual">0</span></div>
+      </div>
+
+    </div>
+
+    <!-- 💞 SPECIAL -->
+    <div class="service-card">
+      <h3>💞 Special Offers</h3>
+
+      <div class="service-row" data-id="friend">
+        <span>🤝 Be my friend — ₱1,000</span>
+        <div class="service-actions">
+          <button onclick="rateService('friend', this)">⭐</button>
+          <button onclick="heartService('friend', this)">❤️</button>
+          <button class="service-btn" onclick="book('Friend application')">Apply</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-friend">0</span> · ❤️ <span id="heart-friend">0</span></div>
+      </div>
+
+      <div class="service-row" data-id="bestfriend">
+        <span>💗 Bestfriend — ₱5,000</span>
+        <div class="service-actions">
+          <button onclick="rateService('bestfriend', this)">⭐</button>
+          <button onclick="heartService('bestfriend', this)">❤️</button>
+          <button class="service-btn" onclick="book('Bestfriend application')">Apply</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-bestfriend">0</span> · ❤️ <span id="heart-bestfriend">0</span></div>
+      </div>
+
+      <div class="service-row" data-id="gfbf">
+        <span>💘 GF/BF — ₱10,000</span>
+        <div class="service-actions">
+          <button onclick="rateService('gfbf', this)">⭐</button>
+          <button onclick="heartService('gfbf', this)">❤️</button>
+          <button class="service-btn" onclick="book('GF/BF application')">Apply</button>
+        </div>
+        <div class="svc-totals">⭐ <span id="star-gfbf">0</span> · ❤️ <span id="heart-gfbf">0</span></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- 🤖 FLOATING LAUNCHERS -->
+<div class="nat-launchers">
+  <button class="nat-launcher" title="Chat with AI Nat" onclick="openNatChat()">🤖</button>
+  <span id="roleBadgeMount"></span>
+</div>
+
+<!-- 🔐 ROLE LOGIN MODAL -->
+<div id="roleLoginOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeRoleLogin()">
+  <div class="nat-modal nat-modal-sm">
+    <button class="nat-x" onclick="closeRoleLogin()">×</button>
+    <h3>🔐 Role Login</h3>
+    <p style="opacity:.7;font-size:13px;margin:0 0 12px">enter your role passcode</p>
+    <input id="roleLoginInput" type="password" placeholder="passcode…"
+           onkeydown="if(event.key==='Enter')tryRoleSubmit()" />
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="tryRoleSubmit()" class="nat-btn-pri">unlock</button>
+      <button onclick="logoutRole()"   class="nat-btn-sec">logout</button>
+    </div>
+    <div id="roleLoginStatus" style="margin-top:10px;font-size:13px;min-height:18px"></div>
+  </div>
+</div>
+
+<!-- 🎮 GAME MODAL -->
+<div id="gameOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeGame()">
+  <div class="nat-modal nat-modal-game">
+    <button class="nat-x" onclick="closeGame()">×</button>
+    <div id="gameCharSelect"></div>
+    <div id="gameStage" class="hidden">
+      <canvas id="gameCanvas" width="360" height="540"></canvas>
+    </div>
+    <div class="game-help">arrow keys / drag to move · catch ⭐❤️ · dodge 💀😡</div>
+  </div>
+</div>
+
+<!-- 🤖 CHAT-NAT MODAL -->
+<div id="chatNatOverlay" class="nat-overlay hidden" onclick="if(event.target===this)closeChat()">
+  <div class="nat-modal nat-modal-chat">
+    <!-- Header -->
+    <div class="cn-header">
+      <div class="cn-header-left">
+        <div class="cn-avatar-ring">
+          <div class="cn-avatar">🤖</div>
+          <div class="cn-online-dot"></div>
+        </div>
+        <div class="cn-header-info">
+          <div class="cn-name">AI Nat</div>
+          <div class="cn-status">🟢 always online · replica mode ✨</div>
+        </div>
+      </div>
+      <div class="cn-header-actions">
+        <button class="cn-clear" onclick="clearChatHistory()" title="clear chat">🗑</button>
+        <button class="cn-close-btn" onclick="closeChat()">✕</button>
+      </div>
+    </div>
+
+    <!-- Quick prompts -->
+    <div class="cn-quick-prompts">
+      <button class="cn-prompt" onclick="sendChatNat('who are you?')">who are you? 👀</button>
+      <button class="cn-prompt" onclick="sendChatNat('what are your hobbies?')">hobbies? 🎨</button>
+      <button class="cn-prompt" onclick="sendChatNat('how old are you?')">age? 🎂</button>
+      <button class="cn-prompt" onclick="sendChatNat('how are you?')">kamusta? 🌸</button>
+    </div>
+
+    <!-- Chat messages -->
+    <div id="chatNatList" class="cn-list"></div>
+
+    <!-- Input -->
+    <div class="cn-input">
+      <input id="chatNatInput" placeholder="message AI nat…"
+             onkeydown="if(event.key==='Enter')sendChatNat()" />
+      <button class="cn-send-btn" onclick="sendChatNat()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 🏆 LEADERBOARD -->
+<section class="leaderboard-section">
+  <div class="leaderboard">
+    <h3>🏆 Leaderboard <span id="lbSortLabel" style="opacity:.6;font-weight:600;font-size:13px">— Most Stars Given</span></h3>
+    <div class="lb-sort-tabs">
+      <button class="lb-sort-btn active" data-sort="stars"       onclick="setLeaderboardSort('stars')">⭐ Highest Stars</button>
+      <button class="lb-sort-btn" data-sort="hearts"             onclick="setLeaderboardSort('hearts')">❤️ Highest Hearts</button>
+      <button class="lb-sort-btn" data-sort="combos"             onclick="setLeaderboardSort('combos')">🎖 Highest Combos</button>
+      <button class="lb-sort-btn" data-sort="overall"            onclick="setLeaderboardSort('overall')">🏆 Overall</button>
+      <button class="lb-sort-btn" data-sort="game"               onclick="setLeaderboardSort('game')">🎮 Game Points</button>
+      <button class="lb-sort-btn" data-sort="upvotes"            onclick="setLeaderboardSort('upvotes')">▲ Upvotes</button>
+      <button class="lb-sort-btn" data-sort="reactions"          onclick="setLeaderboardSort('reactions')">💬 Reactions</button>
+    </div>
+    <div id="leaderboardList">
+      <p class="loading-text" style="text-align:center;opacity:.6">walang nag-iiwan ng message pa… 👀</p>
+    </div>
+    <div id="myComboPanel"></div>
+  </div>
+</section>
+
+  <!-- #6 Hobbies -->
+  <section class="hobbies-section">
+    <div class="section-header-row">
+        <h2 class="section-title">🎨 hobbies & interests</h2>
+        <select class="sort-select" id="hobbiesSort" onchange="window.sortHobbies(this.value)">
+          <option value="default">Default order</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="top-react">Most reacted</option>
+        </select>
+      </div>
+    <div class="hobbies-grid">
+
+      <!-- 📷 Photography -->
+      <div class="hobby-card hobby-rich" data-hobby="photo">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_photo.jpg" alt="Photography" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">📷</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Photography</div>
+          <div class="hobby-desc">Capturing moments & aesthetic shots 🌅</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">📸 Photoshoot ₱300</span>
+            <span class="hobby-price-tag">🎨 Edit ₱500</span>
+          </div>
+          <div class="hobby-samples" id="photoSamples">
+            <div class="sample-slot"><img src="images/hobby_photo1.jpg" alt="photography sample" style="width:100%;height:100%;object-fit:cover;border-radius:8px"></div>
+            <div class="sample-slot"><img src="images/hobby_photo2.jpg" alt="photography sample" style="width:100%;height:100%;object-fit:cover;border-radius:8px"></div>
+            <div class="sample-slot"><img src="images/hobby_photo3.jpg" alt="photography sample" style="width:100%;height:100%;object-fit:cover;border-radius:8px"></div>
+          </div>
+          <a class="service-btn hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_photo')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 💻 Coding -->
+      <div class="hobby-card hobby-rich" data-hobby="coding">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_coding.jpg" alt="Coding" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">💻</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Coding</div>
+          <div class="hobby-desc">Making things on the internet (like this site :>)</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">💻 Code for you ₱800</span>
+            <span class="hobby-price-tag">🐛 Help debug ₱700</span>
+            <span class="hobby-price-tag">🎮 Make a Game ₱1,000</span>
+          </div>
+          <button class="hobby-book-btn hobby-book-outline" type="button" onclick="showCodingProjects();window.awardLocalBadge&&awardLocalBadge('hobby_coding')">👀 See Projects</button>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_coding')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 🎬 Watch History -->
+      <div class="hobby-card hobby-rich" data-hobby="watch">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_watch.jpg" alt="Watch History" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎬</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Watch History</div>
+          <div class="hobby-desc">anime, kdrama, donghua — all consumed 👀</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🍿 Watch Together (Free)</span>
+          </div>
+          <div class="hobby-action-row">
+            <button class="hobby-book-btn hobby-book-outline" onclick="openFavorites();window.awardLocalBadge&&awardLocalBadge('hobby_watch')">📺 See Watch History</button>
+            <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_watch')">📩 Book via Messenger</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🏆 Sports -->
+      <div class="hobby-card hobby-rich" data-hobby="sports">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_sports.jpg" alt="Sports" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🏆</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Sports</div>
+          <div class="hobby-desc">🏸 smashing shuttles + ♟️ checkmate in 4 😏</div>
+          <div class="sports-tags">
+            <span class="sport-chip">🏸 Badminton</span>
+            <span class="sport-chip">♟️ Chess</span>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_sports')">🎮 Play with me</a>
+        </div>
+      </div>
+
+      <!-- 🎨 Digital Arts -->
+      <div class="hobby-card hobby-rich" data-hobby="digiart">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_digiart.jpg" alt="Digital Arts" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎨</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Digital Arts</div>
+          <div class="hobby-desc">drawing pretty things on a screen ✨</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🖥️ Commission Digital art ₱500</span>
+            <span class="hobby-price-tag">✏️ Commission Traditional art ₱500</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_digiart1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="images/sample_digiart2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+            <div class="sample-slot"><img src="images/sample_digiart3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add a photo</span></div>
+          </div>
+          <a class="service-btn hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_digiart')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 🎬 Cinematographer -->
+      <div class="hobby-card hobby-rich" data-hobby="cinema">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_cinema.jpg" alt="Cinematographer" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎬</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Cinematographer</div>
+          <div class="hobby-desc">framing every shot like it's an A24 trailer 🎬</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🎬 Lighting & Music Equipment ₱600</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_cinema1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+            <div class="sample-slot"><img src="images/sample_cinema2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+            <div class="sample-slot"><img src="images/sample_cinema3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎞 add a still</span></div>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_cinema')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 📹 Videographer -->
+      <div class="hobby-card hobby-rich" data-hobby="video">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_video.jpg" alt="Videographer" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">📹</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Videographer</div>
+          <div class="hobby-desc">events, vlogs, b-roll, you name it 📹</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">📹 Hire me as Videographer ₱800</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_video1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+            <div class="sample-slot"><img src="images/sample_video2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+            <div class="sample-slot"><img src="images/sample_video3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎥 add a still</span></div>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_video')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- ✂️ Photo / Video Editor -->
+      <div class="hobby-card hobby-rich" data-hobby="editor">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_editor.jpg" alt="Photo / Video Editor" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">✂️</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Photo / Video Editor</div>
+          <div class="hobby-desc">turning raws into ✨magic✨ in post</div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🖼 Photo Edit ₱600</span>
+            <span class="hobby-price-tag">🎞 Video Edit ₱700</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_edit1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+            <div class="sample-slot"><img src="images/sample_edit2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+            <div class="sample-slot"><img src="images/sample_edit3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🖼 add an edit</span></div>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_editor')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 🎸 Playing Instruments -->
+      <div class="hobby-card hobby-rich" data-hobby="music">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_music.jpg" alt="Playing Instruments" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎸</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Playing Instruments</div>
+          <div class="hobby-desc">strumming melodies & making music 🎵</div>
+          <div class="sports-tags">
+            <span class="sport-chip">🎸 Guitar</span>
+            <span class="sport-chip">🎹 Keyboard</span>
+             <span class="sport-chip">🎸  Bass</span>
+              <span class="sport-chip">🥁 Drums</span>
+              <span class="sport-chip">🪘 Cajon</span>
+              <span class="sport-chip">🎹 Piano Tiles</span>
+          </div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🎵 Hire me as Musician ₱600</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_music1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎵 add a photo</span></div>
+            <div class="sample-slot"><img src="images/sample_music2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎵 add a photo</span></div>
+            <div class="sample-slot"><img src="images/sample_music3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎵 add a photo</span></div>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_music')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+      <!-- 🎮 Games -->
+      <div class="hobby-card hobby-rich" data-hobby="games">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_games.jpg" alt="Games" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">🎮</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Games</div>
+          <div class="hobby-desc">occasional gamer, certified landi 🎮</div>
+          <div class="sports-tags">
+            <span class="sport-chip">🟥 Roblox</span>
+            <span class="sport-chip">⛏ Minecraft</span>
+            <span class="sport-chip">⚡ PGR</span>
+            <span class="sport-chip">😺 Filter Games</span>
+          </div>
+          <div class="hobby-samples">
+            <div class="sample-slot"><img src="images/sample_games1.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎮 add a screenshot</span></div>
+            <div class="sample-slot"><img src="images/sample_games2.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎮 add a screenshot</span></div>
+            <div class="sample-slot"><img src="images/sample_games3.jpg" alt="" onerror="this.parentElement.classList.add('empty'); this.remove()"><span class="sample-empty">🎮 add a screenshot</span></div>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_games')">🎮 Play with me</a>
+        </div>
+      </div>
+      <!-- 📈 Trading -->
+      <div class="hobby-card hobby-rich" data-hobby="trading">
+        <div class="hobby-img-wrap">
+          <img src="images/hobby_trading.jpg" alt="Trading" class="hobby-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="hobby-placeholder" style="display:none">📈</div>
+        </div>
+        <div class="hobby-body">
+          <div class="hobby-name">Trading</div>
+          <div class="hobby-desc">charts, candles & catching the dip 📊</div>
+          <div class="sports-tags">
+            <span class="sport-chip">📉 Forex</span>
+            <span class="sport-chip">📈 Stocks</span>
+            <span class="sport-chip">🪙 Crypto</span>
+          </div>
+          <div class="hobby-services">
+            <span class="hobby-price-tag">🏦 Broker Price ₱1,000</span>
+            <span class="hobby-price-tag">📚 Teach you Trading ₱2,000</span>
+          </div>
+          <a class="hobby-book-btn" href="https://m.me/nathan2wild" target="_blank" onclick="window.awardLocalBadge&&awardLocalBadge('hobby_trading')">📩 Book via Messenger</a>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+  <!-- 📜 CREDENTIALS SECTION -->
+  <section id="credentialsSection">
+    <h2 class="section-title">📜 credentials</h2>
+    <p class="section-sub">the receipts 🧾✨</p>
+
+    <div class="cred-grid">
+
+      <!-- Academic Record -->
+      <div class="cred-card">
+        <div class="cred-card-head">🎓 Academic Record</div>
+
+        <div class="cred-grade-group">
+          <div class="cred-grade-label">Kinder – Grade 6</div>
+          <div class="cred-item cred-muted">nakalimutan na… 😭</div>
+        </div>
+
+        <div class="cred-grade-group">
+          <div class="cred-grade-label">Grade 7</div>
+          <div class="cred-item">🥇 1st Quarter — Top 5, With Honors</div>
+          <div class="cred-item">🥇 2nd Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 3rd Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 4th Quarter — Top, With Honors</div>
+        </div>
+
+        <div class="cred-grade-group">
+          <div class="cred-grade-label">Grade 8</div>
+          <div class="cred-item">🥇 1st Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 2nd Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 3rd Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 4th Quarter — Top 6, With Honors</div>
+        </div>
+
+        <div class="cred-grade-group">
+          <div class="cred-grade-label">Grade 9</div>
+          <div class="cred-item">🥇 1st Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 2nd Quarter — Top, With Honors</div>
+          <div class="cred-item">🥇 3rd Quarter — Top 6, With Honors</div>
+          <div class="cred-item">🥇 4th Quarter — Top 6, With Honors</div>
+        </div>
+
+        <div class="cred-grade-group">
+          <div class="cred-grade-label">Grade 10</div>
+          <div class="cred-item">🌟 1st Quarter — Top 2, With Honors</div>
+          <div class="cred-item">🌟 2nd Quarter — Top 1, With High Honors</div>
+          <div class="cred-item">🌟 3rd Quarter — Top 3, With High Honors</div>
+          <div class="cred-item">🌟 4th Quarter — Top 2, With Highest Honors</div>
+          <div class="cred-item">🌟 4th Quarter — Top, With Highest Honors</div>
+        </div>
+      </div>
+
+      <!-- Significant Records -->
+      <div class="cred-card">
+        <div class="cred-card-head">🏆 Significant Records</div>
+        <div class="cred-item cred-award">🥇 1st Place — Grade 9 Speech Choir (English Month)</div>
+        <div class="cred-item cred-award">🏆 Champion — Grade 9 Speech Choir (ESP Month)</div>
+        <div class="cred-item cred-award">🎬 Best in Documentary — Grade 10 (English Month)</div>
+        <div class="cred-item cred-award">🎸 Grade 10 Battle of the Bands Representative</div>
+        <div class="cred-item cred-award">💃 2nd Place — AP Gala Cotillion</div>
+        <div class="cred-item cred-award">🌱 Student Guide — Gulayan sa Paaralan (Regional Level)</div>
+        <div class="cred-item cred-award">🏫 Best in ESP S.Y 2022–2023</div>
+        <div class="cred-item cred-award">🎓 Graduated CHARLIE — Aristotle of CL Masidlan 2026</div>
+        <div class="cred-item cred-award">📋 Highest Rating — Final Drill Examination CAT</div>
+        <div class="cred-item cred-award">🏀 2nd Place — Intercluster Basketball</div>
+        <div class="cred-item cred-award">🏐 3rd Place — Intercluster Volleyball</div>
+        <div class="cred-divider">Participations</div>
+        <div class="cred-item">📐 MTAP Participant</div>
+        <div class="cred-item">🎸 Grade 9 Acoustic Battle of the Bands</div>
+        <div class="cred-item">🌍 UN Gala (AP Month)</div>
+        <div class="cred-item">💼 Career Development Support Program</div>
+        <div class="cred-item">🎄 Pamaskong Handog</div>
+        <div class="cred-item">🎸 Grade 10 Battle of The Bands</div>
+        <div class="cred-item">💞 LoveFestGala</div>
+        <div class="cred-item">➕ Math Summer Class</div>
+        <div class="cred-item">🚫 Drug Abuse and Prevention Seminar</div>
+        <div class="cred-item">💻 "Walang Iwanan Sa Digital Bayanihan" (ICT Month)</div>
+        <div class="cred-item">🗣 "Tara Usap, G!" Seminar</div>
+        <div class="cred-item">💍 "Say No to Early Marriage, Say No to Early Pregnancy" Seminar</div>
+        <div class="cred-item">🎀 HIV/AIDS Awareness Seminar</div>
+        <div class="cred-item">👫 Friendship Day</div>
+        <div class="cred-item">💧 Maynilad Seminar — Grade 9</div>
+        <div class="cred-item">💧 Maynilad Seminar — Grade 10</div>
+        <div class="cred-item">⭐ Campus Star</div>
+        <div class="cred-item">🎵 Mini Concert</div>
+        <div class="cred-item">🎤 Emcee — HIV/AIDS Awareness Seminar</div>
+        <div class="cred-item">🔧 Technical — Maynilad Seminar</div>
+        <div class="cred-item">📚 Career Guidance Orientation</div>
+        <div class="cred-item">📖 Career Guidance — SHS Curriculum (Grade 10)</div>
+      </div>
+
+      <!-- Leadership Record -->
+      <div class="cred-card">
+        <div class="cred-card-head">👑 Leadership Record</div>
+        <div class="cred-item cred-award">🏛 WiNS Council — JHS PIO (Grade 8)</div>
+        <div class="cred-item cred-award">🏛 WiNS Council — JHS Vice President (Grade 9)</div>
+         <div class="cred-item cred-award">🏛 WiNS Council — JHS Temporary President (Grade 9)</div>
+        <div class="cred-item cred-award">🏛 WiNS Council — JHS President (Grade 10)</div>
+        <div class="cred-item cred-award">📢 WiNS Council — Overall External PIO (Grade 10)</div>
+        <div class="cred-item">📰 Campus Journalism — Member (Grade 10)</div>
+        <div class="cred-item">🌏 AP Club — Grade 10 Representative</div>
+        <div class="cred-item">📱 Sum Club — Social Media Manager (Grade 10)</div>
+        <div class="cred-item">🤝 SamaFil JHS — Member (Grade 10)</div>
+        <div class="cred-item">🏫 Assisted LYSB MNHS — WiNS Council</div>
+        <div class="cred-divider">Class Positions</div>
+        <div class="cred-item">📌 Grade 7 Accommodating — Class Mayor</div>
+        <div class="cred-item">📌 Grade 8 Aster — Class Vice Mayor</div>
+        <div class="cred-item">📌 Grade 9 Apple Tree — Private Escort</div>
+        <div class="cred-item cred-muted">📌 Grade 10 Aristotle — Tambay nalang 😭</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Tutoring Services -->
+  <section id="tutoringSection" class="tutoring-section">
+    <h2 class="section-title">📚 tutoring services</h2>
+    <p class="section-sub">one-on-one · personalized · affordable 💗</p>
+    <div class="tutoring-grid">
+      <div class="tutoring-card">
+        <div class="tutoring-icon">👨‍🏫</div>
+        <div class="tutoring-info">
+          <div class="tutoring-title">Tutoring — Grade 7 to 10</div>
+          <div class="tutoring-sub">All subjects · personalized pace · flexible schedule</div>
+          <div class="tutoring-price">₱500 <span class="tutoring-per">/ session</span></div>
+        </div>
+        <a class="tutoring-book-btn"
+           href="https://m.me/nathan2wild?text=Hi%20Nat!%20I%20want%20to%20book%20a%20tutoring%20session%20(G7-G10)%20%F0%9F%93%9A"
+           target="_blank">Book Now 📩</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Learning Modules -->
+  <section id="modulesSection" class="tutoring-section">
+    <h2 class="section-title">📖 learning modules</h2>
+    <p class="section-sub">ready-to-use · grade-specific · complete reviewer 📝</p>
+    <div class="tutoring-grid">
+      <div class="tutoring-card">
+        <div class="tutoring-icon">📝</div>
+        <div class="tutoring-info">
+          <div class="tutoring-title">Learning Modules — Grade 7 to 12</div>
+          <div class="tutoring-sub">Comprehensive modules · all subjects · digital copy</div>
+          <div class="tutoring-price">₱500 <span class="tutoring-per">/ set</span></div>
+        </div>
+        <a class="tutoring-book-btn"
+           href="https://m.me/nathan2wild?text=Hi%20Nat!%20I%20want%20to%20buy%20learning%20modules%20(G7-G12)%20%F0%9F%93%96"
+           target="_blank">Buy Now 💳</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- #7 Premium Photos -->
+  <section class="premium-section">
+    <h2 class="section-title">💎 premium photos</h2>
+    <div class="premium-card premium-crazy" onclick="showPremiumReveal()">
+      <div class="premium-lock-icon">🔒</div>
+      <div class="premium-title">Premium Photos</div>
+      <div class="premium-price">₱2,000</div>
+      <div class="premium-sub">exclusive premium content inside</div>
+      <button class="premium-btn">Unlock Now 💳</button>
+    </div>
+  </section>
+
+  <!-- Messages -->
+  <section class="message-section">
+    <h2 class="section-title">💌 mag-iwan ng message</h2>
+    <div class="msg-card">
+      <textarea id="msgInput" rows="3" placeholder="type something nice… or hindi 😒"></textarea>
+      <div class="name-toggle-row">
+        <label class="anon-label">
+          <input type="checkbox" id="anonToggle" checked>
+          <span>Stay anonymous</span>
+        </label>
+        <div id="nameField" style="display:none;">
+          <input type="text" id="msgName" placeholder="your name..." class="name-input" maxlength="30">
+        </div>
+      </div>
+     <button id="sendBtn" class="send-btn" onclick="sendMessage()">send it 🎀</button>
+      <div class="msg-sort-row">
+        <button class="sort-btn active" data-sort="date" onclick="setSortMode('date')">🕐 Latest</button>
+        <button class="sort-btn" data-sort="upvotes" onclick="setSortMode('upvotes')">▲ Top</button>
+        <button class="rate-site-btn" onclick="showRateSite()">⭐ Rate Site</button>
+      </div>
+      <div class="messages-list" id="messagesList">
+        <p class="loading-text">loading messages... 🌸</p>
+      </div>
+      <button class="see-more-btn" id="seeMoreBtn" onclick="loadMore()" style="display:none;">see more 👀</button>
+    </div>
+  </section>
+
+  <!-- 🐱 CHIBI TAB SECTION -->
+  <section id="chibiTabSection" class="sticky-tab-section">
+    <h2 class="section-title">🐱 chibi</h2>
+    <p class="section-sub">your own lil companion 🎀</p>
+    <div class="chibi-tab-wrap">
+      <div id="chibiWrap" class="chibi-tab-inner">
+        <img id="chibi" src="animations/idle.gif" alt="chibi" draggable="false">
+        <div id="chibiBubble"></div>
+      </div>
+      <p class="chibi-hint">tap the chibi to make it react! 🌸</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  made with 💗 for my friEnds · don't lurk, react! 🌸
+  <div class="footer-github-row">
+    <a class="github-button" href="https://github.com/natpyydev/funfactsaboutme"
+       data-color-scheme="no-preference: dark_high_contrast; light: light; dark: dark;"
+       data-icon="octicon-star" data-size="large"
+       aria-label="Star natpyydev/funfactsaboutme on GitHub">Star</a>
+  </div>
+
+  <!-- ── PROFESSIONAL MODE PORTAL ──────────────────────────
+       Clicking this fades the screen to black, then navigates
+       to /professional — a completely separate experience.
+       No JS systems are shared. No styles are merged.          -->
+  <div id="pro-mode-portal">
+    <button id="pro-mode-btn" onclick="enterProfessionalMode()">
+      <span class="pmb-glitch" aria-hidden="true">Enter Professional Mode</span>
+      <span class="pmb-label">Enter Professional Mode</span>
+      <span class="pmb-arrow">→</span>
+    </button>
+  </div>
+</footer>
+
+<!-- BLACK FADE OVERLAY — covers the full screen before navigating to /professional -->
+<div id="pro-fade-overlay"></div>
+
+<style>
+/* ── PROFESSIONAL MODE PORTAL ─────────────────────────────── */
+#pro-mode-portal {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#pro-mode-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 40px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+}
+
+/* Scan-line shimmer behind button */
+#pro-mode-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(0, 245, 255, 0.04) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0s;
+}
+#pro-mode-btn:hover::before {
+  transform: translateX(100%);
+  transition: transform 0.7s ease;
+}
+
+#pro-mode-btn:hover {
+  border-color: rgba(0, 245, 255, 0.5);
+  color: #00f5ff;
+  background: rgba(0, 245, 255, 0.05);
+  box-shadow: 0 0 28px rgba(0, 245, 255, 0.18), inset 0 0 20px rgba(0, 245, 255, 0.04);
+}
+
+/* Glitch text effect on hover */
+.pmb-glitch {
+  position: absolute;
+  left: 40px;
+  opacity: 0;
+  color: #ff2d78;
+  pointer-events: none;
+  animation: none;
+}
+#pro-mode-btn:hover .pmb-glitch {
+  animation: glitchFlash 0.6s steps(1) infinite;
+}
+@keyframes glitchFlash {
+  0%   { opacity: 0;    transform: translate(0,    0);    clip-path: inset(0 0 60% 0); }
+  20%  { opacity: 0.5;  transform: translate(-2px, 1px);  clip-path: inset(30% 0 40% 0); }
+  40%  { opacity: 0;    transform: translate(2px,  -1px); clip-path: inset(60% 0 20% 0); }
+  60%  { opacity: 0.4;  transform: translate(-1px, 2px);  clip-path: inset(10% 0 70% 0); }
+  80%  { opacity: 0;    transform: translate(1px,  0);    clip-path: inset(50% 0 30% 0); }
+  100% { opacity: 0;    transform: translate(0,    0); }
+}
+
+.pmb-label { position: relative; z-index: 1; }
+.pmb-arrow  { font-size: 16px; transition: transform 0.3s ease; }
+#pro-mode-btn:hover .pmb-arrow { transform: translateX(5px); }
+
+/* ── FULL-SCREEN FADE OVERLAY ─────────────────────────────── */
+#pro-fade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.75s cubic-bezier(.77, 0, .175, 1);
+}
+#pro-fade-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+</style>
+
+<script>
+/* ── ENTER PROFESSIONAL MODE ──────────────────────────────────
+   1. Fades the entire screen to black.
+   2. After the fade completes, navigates to professional.html
+      which has its own isolated loader/sprite/scroll/particles.
+   No main-site JS is passed. No state is shared.
+──────────────────────────────────────────────────────────── */
+function enterProfessionalMode() {
+    var overlay = document.getElementById('pro-fade-overlay');
+    if (!overlay) return;
+    overlay.classList.add('active');
+    setTimeout(function() {
+        window.location.href = 'professional.html';
+    }, 780);
+}
+</script>
+
+<!-- Popups -->
+<div id="gifPopupOverlay" class="gif-popup-overlay">
+  <div class="gif-popup-box">
+    <div id="gifPopupEmoji" class="gif-popup-emoji"></div>
+    <img id="gifPopupImg" class="gif-popup-img" src="" alt="">
+    <div id="gifPopupBadge"></div>
+  </div>
+</div>
+
+<div id="rateSiteModal" class="rate-modal-overlay" onclick="closeRateSite()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div class="rate-modal-title">⭐ Rate this site!</div>
+    <p class="rate-modal-sub">4+ stars opens the GitHub repo so you can leave a star 🌟</p>
+    <div class="star-row">
+      <button class="star-btn" onclick="submitStarRating(1)">★</button>
+      <button class="star-btn" onclick="submitStarRating(2)">★</button>
+      <button class="star-btn" onclick="submitStarRating(3)">★</button>
+      <button class="star-btn" onclick="submitStarRating(4)">★</button>
+      <button class="star-btn" onclick="submitStarRating(5)">★</button>
+    </div>
+    <button class="rate-close-btn" onclick="closeRateSite()">maybe later 🥺</button>
+  </div>
+</div>
+
+<div id="premiumModal" class="rate-modal-overlay" onclick="closePremiumReveal()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div style="font-size:3rem;margin-bottom:8px">😭</div>
+    <div class="rate-modal-title">uyY</div>
+    <p class="rate-modal-sub">wala po akong Ganon 😭</p>
+    <button class="rate-close-btn" onclick="closePremiumReveal()">ikawwww ahh 😭</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showLockedToast(){
+  const t=document.getElementById('toast');
+  t.textContent='🔒 ₱200 lang! dm me hehe';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function showPremiumReveal(){
+  document.getElementById('premiumModal').classList.add('active');
+  if(window.awardLocalBadge) awardLocalBadge('badge_disgusting');
+}
+function closePremiumReveal(){document.getElementById('premiumModal').classList.remove('active');}
+
+function openGF() {
+  alert("🚫 unavailable pa 😭");
+}
+
+// ============================================================
+// FUN FACTS — simple reveal (no 3D flip)
+// ============================================================
+function toggleFactCard(card) {
+  const front = card.querySelector('.fc-front');
+  const back  = card.querySelector('.fc-back');
+  const isRevealed = card.classList.contains('revealed');
+  card.classList.toggle('revealed', !isRevealed);
+  if (front) front.style.opacity = isRevealed ? '1' : '0';
+  if (back)  back.style.opacity  = isRevealed ? '0' : '1';
+}
+
+// ============================================================
+// PHOTOGRAPHY — local photo slots (saved in localStorage)
+// ============================================================
+let _photoSlotActive = 0;
+const PHOTO_SLOT_KEY = 'natnat_photo_slots';
+
+function loadPhotoSlots() {
+  try { return JSON.parse(localStorage.getItem(PHOTO_SLOT_KEY)) || {}; } catch { return {}; }
+}
+function savePhotoSlots(slots) {
+  localStorage.setItem(PHOTO_SLOT_KEY, JSON.stringify(slots));
+}
+
+function openPhotoSlot(idx) {
+  _photoSlotActive = idx;
+  document.getElementById('photoSlotInput').click();
+}
+
+function handlePhotoSlot(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    const slots = loadPhotoSlots();
+    slots[_photoSlotActive] = dataUrl;
+    savePhotoSlots(slots);
+    renderPhotoSlot(_photoSlotActive, dataUrl);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function renderPhotoSlot(idx, dataUrl) {
+  const slot = document.getElementById('photoSlot' + idx);
+  if (!slot) return;
+  slot.classList.remove('empty');
+  slot.innerHTML = '<img src="' + dataUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onclick="openPhotoSlot(' + idx + ')" title="click to change">';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Restore saved photo slots
+  const slots = loadPhotoSlots();
+  Object.entries(slots).forEach(([idx, url]) => renderPhotoSlot(Number(idx), url));
+});
+</script>
+<!-- ★ SHARED GALLERY DATA — must load before app2.js and professional mode -->
+<script src="gallery-data.js"></script>
+<script type="module" src="app2.js"></script>
+<script defer src="countdown.js"></script>
+<script defer src="items.js"></script>
+<script defer src="seasonal.js"></script>
+<script defer src="music.js"></script>
+<script defer src="cutscene-water.js"></script>
+<script defer src="quiz.js"></script>
+<script defer src="challenges.js"></script>
+<!-- easter.js disabled -->
+<script defer src="photowall.js"></script>
+<script defer src="worldmap.js"></script>
+<script defer src="guestbook.js"></script>
+<script defer src="levels.js"></script>
+<script defer src="profile.js"></script>
+<script defer src="vip.js"></script>
+<script defer src="quests.js"></script>
+<script defer src="themes.js"></script>
+<script defer src="channel.js"></script>
+<script defer src="tabs.js"></script>
+<script defer src="sort-ui.js"></script>
+<script defer src="bongocat.js"></script>
+<script defer src="credits.js"></script>
+<script type="module" src="auth-upgrade.js"></script>
+<script defer src="darkmode.js"></script>
+<script defer src="chibi-wander.js"></script>
+<script defer src="visitors.js"></script>
+<script defer src="devconsole.js"></script>
+<script defer src="horror.js"></script>
+<script type="module" src="mood.js"></script>
+<div id="deleteConfirm" class="confirm-popup hidden">
+  <div class="confirm-box">
+    <p>sure na to delete this message? 🗑️</p>
+    <div class="confirm-actions">
+      <button id="confirmYes">Yes</button>
+      <button id="confirmNo">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="codingProjectsModal" class="rate-modal-overlay" onclick="closeCodingProjects()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()" style="max-height:80vh;overflow-y:auto;">
+    <div class="rate-modal-title">💻 coding projects</div>
+    <p style="font-size:12px;opacity:.6;margin:0 0 14px;text-align:center">click any project to visit it ✨</p>
+
+    <!-- static pinned projects -->
+    <div class="proj-list" id="codingProjectStaticList">
+      <a class="proj-item" href="https://natpyydev.github.io/funfactsaboutme" target="_blank">
+        <div class="proj-title">🎀 Fun Facts About Me</div>
+        <div class="proj-link">natpyydev.github.io/funfactsaboutme</div>
+      </a>
+      <a class="proj-item" href="https://github.com/natpyydev" target="_blank">
+        <div class="proj-title">🐙 GitHub Portfolio</div>
+        <div class="proj-link">github.com/natpyydev</div>
+      </a>
+      <a class="proj-item" href="https://natpyydev.github.io/Howtosavealife-Edit/" target="_blank">
+        <div class="proj-title">🎵 How to save a Life but but coded</div>
+        <div class="proj-link">natpyydev.github.io/Howtosavealife-Edit</div>
+      </a>
+
+    </div>
+
+    <!-- user-added projects rendered here -->
+    <div id="codingProjectList" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:0"></div>
+
+    <!-- add project form -->
+    <div class="proj-form">
+      <div class="proj-form-title">➕ add a project</div>
+      <input id="projectTitleInput" placeholder="Project title e.g. 🎮 My Cool Game">
+      <input id="projectLinkInput" placeholder="Link e.g. https://github.com/natpyydev/game">
+      <button class="pf-add-btn" type="button" onclick="addCodingProject()">Add Project</button>
+    </div>
+
+    <button class="rate-close-btn" onclick="closeCodingProjects()" style="margin-top:16px">close</button>
+  </div>
+</div>
+
+<div id="favoritesModal" class="rate-modal-overlay" onclick="closeFavorites()">
+  <div class="rate-modal-box" onclick="event.stopPropagation()">
+    <div class="rate-modal-title">🎬 my favorites</div>
+    <p style="font-size:12px;opacity:.6;margin:0 0 10px;text-align:center">scroll to see more · tap a slide to explore</p>
+
+ <div class="favorites-slider" id="favSlider">
+  
+  <!-- KDRAMA -->
+<div class="fav-slide" style="background-image:url('images/kdrama.jpg')">
+    <div class="fav-overlay">
+      <h3>🇰🇷 Kdrama</h3>
+      <p>1. Undercover High School</p>
+      <p>2. Midnight</p>
+      <p>3. The Bad Guys</p>
+    </div>
+  </div>
+  
+  <!-- CDRAMA -->
+  <div class="fav-slide" style="background-image:url('images/donghua.jpg')">
+    <div class="fav-overlay">
+      <h3>🇨🇳 Donghua</h3>
+      <p>1. Battle Through The Heavens</p>
+      <p>2. Renegade Immortal</p>
+      <p>3. Slay the Gods</p>
+    </div>
+  </div>
+  
+  <!-- ANIME -->
+  <div class="fav-slide" style="background-image:url('images/anime.jpg')">
+    <div class="fav-overlay">
+      <h3>🎌 Anime</h3>
+      <p>1. Your Name</p>
+      <p>2. Weathering With You</p>
+      <p>3. Suzume</p>
+    </div>
+  </div>
+  
+</div>
+
+<!-- dots OUTSIDE -->
+<div class="fav-dots">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+<!-- CUTSCENES -->
+<script src="cutscene-player.js"></script>
+<script src="cutscene-start-cyber.js"></script>
+<script src="cutscene-start-heaven.js"></script>
+<script src="cutscene-cyber.js"></script>
+<script src="cutscene-heaven.js"></script>
+
+<!-- AVATAR SYSTEM -->
+<script defer src="./avatar-frames/avatar-frames.js"></script>
+<script defer src="./avatar-frames/avatar-frames-ui.js"></script>
+<script defer src="./avatar-fix.js"></script>
+
+<!-- PATCHES -->
+<script defer src="registry-normalizer.js"></script>
+<script defer src="frame-sync-patch.js"></script>
+<script defer src="cosmetics-sync.js"></script>
+
+<!-- COSMETICS SYSTEM -->
+<script defer src="cosmetics-system.js"></script>
+<link rel="stylesheet" href="css/inventory-ui.css">
+<script defer src="inventory-ui.js"></script>
+
+<!-- THEME -->
+<script src="theme-fx-v2.js"></script>
+<script src="patch-four-fixes.js"></script>
+
+<!-- PRESTIGE -->
+<script type="module" src="./prestige-system/index.js"></script>
+
+<!-- COSMETICS PHASE 2 INTEGRATION (must load last) -->
+<script defer src="cosmetics-phase2-patch.js"></script>
+
+</body>
+</html>

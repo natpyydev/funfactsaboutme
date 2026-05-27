@@ -1,0 +1,1447 @@
+/* ============================================================
+   cutscene-new.css
+   Styles for: cutscene-player.js + cutscene-cyber.js + cutscene-heaven.js
+   ============================================================ */
+
+
+/* ════════════════════════════════════════════════════════════
+   PLAYER — shared overlay shell
+   ════════════════════════════════════════════════════════════ */
+
+.cs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  overflow: hidden;
+}
+
+.cs-overlay.cs-ov-show    { opacity: 1; }
+.cs-overlay.cs-ov-ending  { opacity: 0; pointer-events: none; }
+/* autoStart mode: no click-to-start needed, cursor stays default */
+.cs-overlay.cs-ov-autostart { cursor: default; }
+
+/* Dark base */
+.cs-ov-bg {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  transition: background 2s ease, filter 2s ease;
+}
+
+/* Cinematic vignette */
+.cs-ov-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 85% at 50% 50%,
+    transparent 55%, rgba(0,0,0,0.82) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Effects container */
+.cs-ov-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+/* Letterbox bars */
+.cs-ov-lb {
+  width: 100%;
+  height: 7vh;
+  background: #000;
+  flex-shrink: 0;
+  z-index: 4;
+}
+
+/* ── Subtitle ─────────────────────────────────────────────── */
+.cs-ov-sub-wrap {
+  position: absolute;
+  bottom: 11vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(740px, 90vw);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cs-sub {
+  display: inline-block;
+  opacity: 0;
+  transition: opacity 0.38s ease;
+  font-family: 'Georgia', serif;
+  font-size: clamp(15px, 2.3vw, 20px);
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.93);
+  text-shadow: 0 0 24px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.8);
+  padding: 8px 20px;
+}
+.cs-sub.cs-show { opacity: 1; }
+
+.cs-sub span {
+  display: block;
+}
+
+/* Style variants */
+.cs-sub-normal  { font-style: normal; }
+.cs-sub-whisper { font-style: italic; color: rgba(220,220,220,0.75); font-size: 0.9em; }
+.cs-sub-warning { color: #ff6060; font-weight: 600; font-style: normal; letter-spacing: 0.08em; }
+.cs-sub-system  { font-family: 'Courier New', monospace; color: #00ff80; font-size: 0.88em; letter-spacing: 0.12em; text-transform: uppercase; }
+.cs-sub-glitch  { color: #fff; font-family: 'Courier New', monospace; }
+
+/* ── Time bar ─────────────────────────────────────────────── */
+.cs-ov-timebar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  z-index: 20;
+}
+.cs-ov-timefill {
+  height: 100%;
+  width: 0;
+  background: rgba(255,255,255,0.35);
+  transition: width 0.4s linear;
+}
+
+/* ── Skip button ──────────────────────────────────────────── */
+.cs-ov-skip {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  z-index: 30;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.cs-ov-skip:hover {
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.85);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   CYBER — background + fx elements
+   ════════════════════════════════════════════════════════════ */
+
+/* Background */
+#cutscene_cyber .cs-ov-bg {
+  background: #000;
+}
+#cutscene_cyber .cb-bg-red {
+  background: #0a0000 !important;
+  filter: hue-rotate(5deg) !important;
+}
+#cutscene_cyber .cb-bg-experiment {
+  background: #0d0000 !important;
+  animation: cb-bg-pulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes cb-bg-pulse {
+  from { filter: brightness(1); }
+  to   { filter: brightness(1.12) hue-rotate(8deg); }
+}
+
+/* Grid canvas */
+.cb-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+  animation: cb-grid-fade 3s ease forwards;
+}
+@keyframes cb-grid-fade {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+/* Scanlines */
+.cb-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.0) 0px,
+    rgba(0,0,0,0.0) 1px,
+    rgba(0,255,80,0.025) 1px,
+    rgba(0,255,80,0.025) 2px
+  );
+  animation: cb-scan-move 8s linear infinite;
+}
+@keyframes cb-scan-move {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100px; }
+}
+
+/* Access log terminal */
+.cb-log-box {
+  position: absolute;
+  top: 12%;
+  right: 3%;
+  width: min(300px, 42vw);
+  max-height: 55vh;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(9px, 1.3vw, 12px);
+  color: #00ff80;
+  opacity: 0;
+  animation: cb-log-in 1.2s 0.5s ease forwards;
+  border-left: 1px solid rgba(0,255,80,0.2);
+  padding-left: 10px;
+}
+@keyframes cb-log-in { from { opacity: 0; } to { opacity: 0.75; } }
+
+.cb-log-line { margin-bottom: 3px; white-space: nowrap; overflow: hidden; }
+.cb-log-warn { color: #ff4444; }
+
+/* Glitch flash overlay */
+.cb-glitch-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Glitch slice artifact */
+.cb-glitch-slice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(0,255,80,0.15);
+  animation: cb-slice-anim 0.4s ease forwards;
+}
+@keyframes cb-slice-anim {
+  0%   { transform: translateX(0); opacity: 0.6; }
+  50%  { transform: translateX(-20px); opacity: 0.3; }
+  100% { transform: translateX(30px); opacity: 0; }
+}
+
+/* Input cursor */
+.cb-input-cursor {
+  position: absolute;
+  bottom: 30%;
+  left: 5%;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(11px, 1.5vw, 14px);
+  color: #00ff80;
+  animation: cb-blink-text 0.6s step-end infinite;
+}
+.cb-input-ok {
+  color: #80ffb0;
+  animation: none;
+}
+@keyframes cb-blink-text {
+  50% { opacity: 0; }
+}
+
+/* Adapt lines */
+.cb-adapt-line {
+  position: absolute;
+  left: 5%;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(10px, 1.4vw, 13px);
+  color: rgba(0,255,80,0.7);
+  opacity: 0;
+  animation: cb-adapt-in 0.5s ease forwards, cb-adapt-out 0.6s 3s ease forwards;
+}
+@keyframes cb-adapt-in  { to { opacity: 1; } }
+@keyframes cb-adapt-out { to { opacity: 0; } }
+
+/* Warning bar */
+.cb-warning-bar {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Courier New', monospace;
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: #ff4444;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  animation: cb-warn-blink 0.5s step-end infinite;
+  text-shadow: 0 0 12px rgba(255,40,40,0.6);
+}
+.cb-warning-fade { opacity: 0; transition: opacity 0.8s; }
+@keyframes cb-warn-blink { 50% { opacity: 0.3; } }
+
+/* Camera icon */
+.cb-camera-icon {
+  position: absolute;
+  font-size: 28px;
+  opacity: 0;
+  animation: cb-cam-in 0.3s ease forwards;
+}
+@keyframes cb-cam-in {
+  from { transform: scale(1.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 0.7; }
+}
+
+/* White flash */
+.cb-white-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.7);
+  animation: cb-flash-out 0.4s ease forwards;
+}
+@keyframes cb-flash-out { to { opacity: 0; } }
+
+/* Experiment stamp */
+.cb-experiment-stamp {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+.cb-exp-show { opacity: 1; transform: scale(1); }
+
+.cb-exp-label {
+  font-size: clamp(10px, 1.4vw, 13px);
+  color: rgba(255,60,60,0.7);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+.cb-exp-code {
+  font-size: clamp(36px, 8vw, 72px);
+  color: #ff2222;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 40px rgba(255,0,0,0.5);
+  animation: cb-exp-glitch 0.3s step-end infinite;
+}
+@keyframes cb-exp-glitch {
+  0%  { transform: translate(0,0)         skewX(0deg); }
+  20% { transform: translate(-3px,1px)    skewX(-2deg); }
+  40% { transform: translate(4px,-1px)    skewX(1deg); }
+  60% { transform: translate(-2px,2px)    skewX(-1deg); }
+  80% { transform: translate(3px,-2px)    skewX(2deg); }
+  100%{ transform: translate(0,0)         skewX(0deg); }
+}
+.cb-exp-sub {
+  font-size: clamp(14px, 2vw, 20px);
+  color: rgba(255,100,100,0.9);
+  letter-spacing: 0.1em;
+}
+.cb-exp-blink {
+  font-size: clamp(9px, 1.2vw, 12px);
+  color: rgba(255,60,60,0.6);
+  letter-spacing: 0.3em;
+  animation: cb-warn-blink 0.7s step-end infinite;
+}
+
+/* Pale subtitle override for cyber */
+#cutscene_cyber .cs-sub-system { color: #00ff80; }
+
+
+/* ════════════════════════════════════════════════════════════
+   HEAVEN — background + fx elements
+   ════════════════════════════════════════════════════════════ */
+
+/* Background progression */
+#cutscene_heaven .cs-ov-bg {
+  background: radial-gradient(ellipse 100% 100% at 50% 0%,
+    #ffe8a0 0%, #ffd060 30%, #c87000 70%, #4a3000 100%);
+}
+#cutscene_heaven .hv-bg-dawn {
+  background: radial-gradient(ellipse 100% 100% at 50% 10%,
+    #fff5cc 0%, #ffe080 25%, #d4900a 60%, #5a3800 100%) !important;
+}
+#cutscene_heaven .hv-bg-stagnant {
+  background: radial-gradient(ellipse 100% 100% at 50% 10%,
+    #fff8e0 0%, #ffeea0 30%, #c09000 65%, #3a2a00 100%) !important;
+  transition: background 8s ease !important;
+}
+#cutscene_heaven .hv-bg-frozen {
+  filter: saturate(0.5) brightness(1.15) !important;
+  transition: filter 10s ease !important;
+}
+#cutscene_heaven .hv-bg-overexpose {
+  filter: saturate(0.1) brightness(2.2) !important;
+  transition: filter 8s ease !important;
+}
+
+/* Particle canvas */
+.hv-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+}
+
+/* Glow orb */
+.hv-glow-orb {
+  position: absolute;
+  top: -15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60vw;
+  height: 60vw;
+  max-width: 700px;
+  max-height: 700px;
+  background: radial-gradient(circle, rgba(255,240,160,0.35) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: hv-orb-breathe 6s ease-in-out infinite;
+}
+@keyframes hv-orb-breathe {
+  0%, 100% { transform: translateX(-50%) scale(1);    opacity: 0.5; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 0.7; }
+}
+
+/* Golden rays */
+.hv-rays {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 130%;
+  pointer-events: none;
+}
+.hv-ray {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1.5px;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(255,230,100,0.5), transparent 80%);
+  transform-origin: top center;
+  animation: hv-ray-sway 8s ease-in-out infinite alternate;
+}
+@keyframes hv-ray-sway {
+  from { opacity: var(--op, 0.08); }
+  to   { opacity: calc(var(--op, 0.08) * 1.6); }
+}
+
+/* Halo floats */
+.hv-halo-float {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0;
+  animation: hv-halo-rise 3s ease forwards;
+  pointer-events: none;
+}
+@keyframes hv-halo-rise {
+  0%   { opacity: 0; transform: translateY(15px) scale(0.8); }
+  30%  { opacity: 0.7; }
+  100% { opacity: 0.5; transform: translateY(-20px) scale(1); }
+}
+
+/* Still sky overlay */
+.hv-still-sky {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 248, 210, 0);
+  transition: background 12s ease;
+}
+.hv-still-show {
+  background: rgba(255, 248, 210, 0.15);
+}
+
+/* Smile faces */
+.hv-smile {
+  position: absolute;
+  opacity: 0;
+  filter: brightness(1.4);
+  animation: hv-smile-fade 5s ease forwards;
+  pointer-events: none;
+}
+@keyframes hv-smile-fade {
+  0%   { opacity: 0; transform: scale(0.7); }
+  15%  { opacity: 0.55; transform: scale(1); }
+  85%  { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+/* Lone stuck smile */
+.hv-lone-smile {
+  position: absolute;
+  font-size: 38px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  transition: opacity 5s ease, transform 5s ease;
+  filter: brightness(2) saturate(0);
+}
+.hv-lone-show {
+  opacity: 0.25;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Strobe */
+.hv-strobe {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.65);
+  animation: hv-strobe-out 0.2s ease forwards;
+}
+@keyframes hv-strobe-out { to { opacity: 0; } }
+
+/* Final washout */
+.hv-washout {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,252,230,0);
+  transition: background 15s ease;
+  pointer-events: none;
+}
+.hv-washout-show {
+  background: rgba(255,252,230,0.92);
+}
+
+/* Pale subtitle for overexposed ending */
+.hv-sub-pale {
+  color: rgba(120,100,60,0.6) !important;
+  text-shadow: none !important;
+}
+/* ============================================================
+   cutscene-new.css  ▸  CONTINUATION (appended after existing file)
+   Adds: cyber start screen, heaven start screen,
+         theme canvas FX overlay classes (cyber/hell/heaven/forest/space/y2k)
+   ============================================================ */
+
+
+/* ════════════════════════════════════════════════════════════
+   CYBER START SCREEN  —  Biometric Scanner
+   ════════════════════════════════════════════════════════════ */
+
+.cs-start {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Cyber start bg */
+.cs-start-cyber {
+  background: #000;
+}
+
+/* Full-screen scanline pass */
+.cs-start-cyber::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,255,80,.018) 2px,
+    rgba(0,255,80,.018) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: cbs-scan-drift 10s linear infinite;
+}
+@keyframes cbs-scan-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 0 200px; }
+}
+
+/* Green scanline sweep */
+.cbs-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(0,255,80,.6) 30%,
+    rgba(0,255,80,.9) 50%,
+    rgba(0,255,80,.6) 70%,
+    transparent
+  );
+  box-shadow: 0 0 18px rgba(0,255,80,.5), 0 0 40px rgba(0,255,80,.2);
+  pointer-events: none;
+  z-index: 5;
+  animation: cbs-sweep-run 2.4s linear infinite;
+  will-change: top;
+}
+@keyframes cbs-sweep-run {
+  from { top: -4px; }
+  to   { top: 100%; }
+}
+
+/* Corner brackets */
+.cbs-brackets {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.cbs-brackets::before,
+.cbs-brackets::after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-color: rgba(0,255,80,.5);
+  border-style: solid;
+}
+.cbs-brackets::before {
+  top: 20px; left: 20px;
+  border-width: 2px 0 0 2px;
+}
+.cbs-brackets::after {
+  bottom: 20px; right: 20px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Fingerprint container */
+.cbs-fp-wrap {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* Fingerprint SVG ring */
+.cbs-fp {
+  position: relative;
+  width: clamp(140px, 22vw, 220px);
+  height: clamp(140px, 22vw, 220px);
+}
+
+.cbs-fp-svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 12px rgba(0,255,80,.35));
+  animation: cbs-fp-pulse 3s ease-in-out infinite;
+}
+@keyframes cbs-fp-pulse {
+  0%,100% { opacity: .55; filter: drop-shadow(0 0 8px rgba(0,255,80,.3)); }
+  50%      { opacity: .75; filter: drop-shadow(0 0 22px rgba(0,255,80,.6)); }
+}
+
+/* Ring around fingerprint */
+.cbs-fp-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,255,80,.25);
+  animation: cbs-ring-spin 6s linear infinite;
+}
+.cbs-fp-ring::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 6px;
+  background: rgba(0,255,80,.8);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0,255,80,.7);
+}
+@keyframes cbs-ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Scan fill overlay on fingerprint */
+.cbs-fp-scan {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.cbs-fp-scan::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 3px;
+  background: rgba(0,255,80,.8);
+  box-shadow: 0 0 10px rgba(0,255,80,.6);
+  top: -3px;
+  animation: cbs-fp-scan-run 1.8s ease-in-out infinite;
+}
+@keyframes cbs-fp-scan-run {
+  0%   { top: -3px; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* "VERIFY IDENTITY" title */
+.cbs-title {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(13px, 2vw, 18px);
+  letter-spacing: 0.35em;
+  color: rgba(0,255,80,.85);
+  text-transform: uppercase;
+  text-shadow: 0 0 16px rgba(0,255,80,.45);
+  animation: cbs-title-blink 4s ease-in-out infinite;
+}
+@keyframes cbs-title-blink {
+  0%,90%,100% { opacity: 1; }
+  92% { opacity: .3; }
+  94% { opacity: 1; }
+  97% { opacity: .6; }
+}
+
+/* Typing status text */
+.cbs-status {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(10px, 1.4vw, 13px);
+  letter-spacing: 0.18em;
+  color: rgba(0,200,60,.7);
+  text-transform: uppercase;
+  min-height: 1.4em;
+}
+.cbs-status-cursor::after {
+  content: '█';
+  animation: cbs-cursor-blink 0.55s step-end infinite;
+  margin-left: 2px;
+  font-size: 0.8em;
+}
+@keyframes cbs-cursor-blink { 50% { opacity: 0; } }
+
+/* Click prompt */
+.cbs-prompt {
+  position: absolute;
+  bottom: 8vh;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(10px, 1.3vw, 12px);
+  letter-spacing: 0.25em;
+  color: rgba(0,255,80,.4);
+  text-transform: uppercase;
+  animation: cbs-prompt-pulse 2s ease-in-out infinite;
+}
+@keyframes cbs-prompt-pulse {
+  0%,100% { opacity: .4; }
+  50%      { opacity: .75; }
+}
+
+/* Verified state */
+.cbs-fp-verified .cbs-fp-svg {
+  filter: drop-shadow(0 0 30px rgba(0,255,80,.9));
+  opacity: 1;
+  animation: none;
+}
+.cbs-fp-verified .cbs-fp-ring {
+  border-color: rgba(0,255,80,.8);
+  animation: cbs-ring-spin 1.2s linear infinite;
+}
+
+/* Glitch exit transition */
+.cs-start-cyber.cbs-exiting {
+  animation: cbs-glitch-exit 0.55s ease forwards;
+}
+@keyframes cbs-glitch-exit {
+  0%   { opacity: 1; transform: translateX(0) skewX(0deg); filter: none; }
+  15%  { transform: translateX(-12px) skewX(-4deg); filter: hue-rotate(90deg) brightness(1.4); }
+  30%  { transform: translateX(16px) skewX(3deg);  filter: invert(.15) brightness(1.6); }
+  50%  { transform: translateX(-6px) skewX(-2deg); filter: brightness(2); }
+  70%  { transform: translateX(4px);  opacity: .6; }
+  100% { opacity: 0; transform: translateX(0); filter: none; }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   HEAVEN START SCREEN  —  Divine Gate
+   ════════════════════════════════════════════════════════════ */
+
+.cs-start-heaven {
+  background: radial-gradient(ellipse 80% 100% at 50% 0%,
+    #fffce8 0%, #ffeaa0 30%, #c8a84b 65%, #5a3a00 100%);
+}
+
+/* Soft vignette */
+.cs-start-heaven::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 85% at 50% 40%,
+    transparent 40%, rgba(80,50,0,.55) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Particle canvas behind content */
+.hvs-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Gate glow */
+.hvs-gate {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Sigil / circle */
+.hvs-sigil {
+  position: relative;
+  width: clamp(160px, 25vw, 240px);
+  height: clamp(160px, 25vw, 240px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outer ring */
+.hvs-sigil-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(200,168,80,.35);
+  box-shadow:
+    0 0 20px rgba(200,168,80,.2),
+    inset 0 0 20px rgba(255,220,100,.1);
+  animation: hvs-ring-breathe 4s ease-in-out infinite;
+}
+@keyframes hvs-ring-breathe {
+  0%,100% { transform: scale(1);    box-shadow: 0 0 20px rgba(200,168,80,.2), inset 0 0 20px rgba(255,220,100,.1); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 40px rgba(200,168,80,.4), inset 0 0 30px rgba(255,220,100,.18); }
+}
+
+/* Inner ring — rotates */
+.hvs-sigil-ring2 {
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(200,168,80,.25);
+  animation: hvs-ring2-spin 18s linear infinite;
+}
+@keyframes hvs-ring2-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Central symbol */
+.hvs-sigil-symbol {
+  font-size: clamp(48px, 9vw, 80px);
+  filter: drop-shadow(0 0 18px rgba(255,220,100,.5));
+  animation: hvs-symbol-glow 3s ease-in-out infinite;
+  z-index: 2;
+}
+@keyframes hvs-symbol-glow {
+  0%,100% { filter: drop-shadow(0 0 14px rgba(255,220,100,.4)); transform: scale(1); }
+  50%      { filter: drop-shadow(0 0 30px rgba(255,220,100,.75)); transform: scale(1.04); }
+}
+
+/* God rays behind sigil */
+.hvs-rays {
+  position: absolute;
+  inset: -60%;
+  pointer-events: none;
+  z-index: 3;
+  animation: hvs-rays-fade 3s ease forwards;
+}
+@keyframes hvs-rays-fade { from { opacity:0; } to { opacity:1; } }
+.hvs-ray {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 2px;
+  height: 45%;
+  transform-origin: top center;
+  background: linear-gradient(to bottom, rgba(255,220,100,.35), transparent);
+}
+
+/* "ASCENSION ACCEPTED" */
+.hvs-title {
+  font-family: 'Georgia', serif;
+  font-size: clamp(13px, 2vw, 18px);
+  letter-spacing: 0.3em;
+  color: rgba(200,168,80,.9);
+  text-shadow: 0 0 20px rgba(200,168,80,.4), 0 2px 4px rgba(0,0,0,.3);
+  text-transform: uppercase;
+  animation: hvs-title-appear 2s ease forwards;
+}
+@keyframes hvs-title-appear {
+  from { opacity:0; transform: translateY(8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* Warm bloom overlay */
+.hvs-bloom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 30%,
+    rgba(255,240,160,.18), transparent 70%);
+  pointer-events: none;
+  z-index: 4;
+  animation: hvs-bloom-pulse 4s ease-in-out infinite;
+}
+@keyframes hvs-bloom-pulse {
+  0%,100% { opacity: .6; }
+  50%      { opacity: 1; }
+}
+
+/* Click prompt */
+.hvs-prompt {
+  position: absolute;
+  bottom: 8vh;
+  font-family: 'Georgia', serif;
+  font-size: clamp(10px, 1.3vw, 13px);
+  letter-spacing: 0.2em;
+  color: rgba(200,168,80,.5);
+  font-style: italic;
+  animation: hvs-prompt-pulse 2.5s ease-in-out infinite;
+  z-index: 10;
+}
+@keyframes hvs-prompt-pulse {
+  0%,100% { opacity: .5; }
+  50%      { opacity: .9; }
+}
+
+/* Halo particles (small golden orbs) */
+.hvs-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,220,100,.7);
+  pointer-events: none;
+  z-index: 6;
+  animation: hvs-particle-rise var(--dur,4s) ease-in var(--delay,0s) infinite;
+}
+@keyframes hvs-particle-rise {
+  0%   { opacity: 0; transform: translateY(0) scale(1); }
+  20%  { opacity: .8; }
+  80%  { opacity: .5; }
+  100% { opacity: 0; transform: translateY(-120px) scale(.5); }
+}
+
+/* Accepted flash */
+.hvs-accept-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,250,220,.7);
+  pointer-events: none;
+  z-index: 20;
+  animation: hvs-flash-out 0.6s ease forwards;
+}
+@keyframes hvs-flash-out { to { opacity:0; } }
+
+/* Heaven start exit */
+.cs-start-heaven.hvs-exiting {
+  animation: hvs-ascend-exit 0.7s ease forwards;
+}
+@keyframes hvs-ascend-exit {
+  0%   { opacity:1; filter:brightness(1); }
+  40%  { filter: brightness(2.5) saturate(1.5); }
+  100% { opacity:0; filter: brightness(3) saturate(0); }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   THEME FX CANVAS OVERLAY
+   Shared host for all canvas-based theme visual effects
+   ════════════════════════════════════════════════════════════ */
+
+#theme-fx-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;          /* behind all content, above bare body bg */
+  will-change: transform;
+}
+
+/* Theme overlay wrapper — hosts both canvas + CSS layers */
+.theme-fx-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── CYBER extra FX ──────────────────────────────────────── */
+
+/* Matrix rain canvas */
+.tfx-matrix-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.13;
+}
+
+/* Neon pulse border — animates on body */
+body.theme-cyber .theme-fx-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  animation: tfx-cyber-border 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tfx-cyber-border {
+  0%,100% { border-color: rgba(0,255,80,.0); box-shadow: none; }
+  50%      { border-color: rgba(0,255,80,.12); box-shadow: inset 0 0 60px rgba(0,255,80,.04); }
+}
+
+/* Glitch burst flash */
+.tfx-glitch-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: tfx-glitch-burst-anim 0.3s ease forwards;
+}
+@keyframes tfx-glitch-burst-anim {
+  0%  { opacity: .5; transform: skewX(-2deg); }
+  40% { opacity: .2; transform: skewX(1deg) translateX(4px); }
+  100%{ opacity: 0; transform: none; }
+}
+
+/* Terminal flicker filter on page */
+body.theme-cyber.tfx-terminal-flicker {
+  animation: tfx-flicker 0.12s step-end forwards;
+}
+@keyframes tfx-flicker {
+  0%  { filter: brightness(1); }
+  25% { filter: brightness(.7) contrast(1.3); }
+  50% { filter: brightness(1.1); }
+  75% { filter: brightness(.85); }
+  100%{ filter: brightness(1); }
+}
+
+/* Scanline overlay for cyber theme page */
+body.theme-cyber .theme-fx-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,255,80,.012) 3px,
+    rgba(0,255,80,.012) 4px
+  );
+  pointer-events: none;
+}
+
+
+/* ── HELL extra FX ───────────────────────────────────────── */
+
+/* Ember particle canvas */
+.tfx-ember-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.55;
+}
+
+/* Lava glow at bottom */
+.tfx-lava-glow {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 35vh;
+  background: radial-gradient(ellipse 100% 100% at 50% 100%,
+    rgba(255,50,0,.18), rgba(180,0,0,.1) 50%, transparent 100%);
+  animation: tfx-lava-breathe 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tfx-lava-breathe {
+  0%,100% { opacity: .6; transform: scaleY(1); }
+  50%      { opacity: 1;  transform: scaleY(1.05); }
+}
+
+/* Heat distortion — CSS SVG filter */
+.tfx-heat-distort {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: tfx-heat-warp 0.08s step-end infinite;
+}
+@keyframes tfx-heat-warp {
+  0%  { filter: url(#heatFilter) opacity(0); }
+  30% { filter: url(#heatFilter) opacity(.5); }
+  60% { filter: url(#heatFilter) opacity(.3); }
+  100%{ filter: url(#heatFilter) opacity(0); }
+}
+
+/* Smoke / fog layer */
+.tfx-fog {
+  position: absolute;
+  bottom: 0; left: -20%; right: -20%;
+  height: 45vh;
+  background: radial-gradient(ellipse 80% 80% at 50% 100%,
+    rgba(60,0,0,.35), transparent 80%);
+  animation: tfx-fog-drift 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes tfx-fog-drift {
+  from { transform: translateX(-5%) scaleX(1.05); }
+  to   { transform: translateX(5%) scaleX(.95); }
+}
+
+/* Flickering inferno light — body flash */
+body.theme-hell .theme-fx-layer {
+  animation: tfx-hell-flicker 4s step-end infinite;
+}
+@keyframes tfx-hell-flicker {
+  0%,100%{ opacity:1; }
+  82%    { opacity:.95; }
+  83%    { opacity:.82; }
+  84%    { opacity:.96; }
+  91%    { opacity:.88; }
+  92%    { opacity:1; }
+}
+
+
+/* ── HEAVEN extra FX ─────────────────────────────────────── */
+
+/* Floating particle canvas */
+.tfx-heaven-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.45;
+}
+
+/* God ray overlay */
+.tfx-god-rays {
+  position: absolute;
+  top: -10%; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; height: 110%;
+  pointer-events: none;
+  opacity: 0;
+  animation: tfx-rays-fadein 4s 1s ease forwards;
+}
+@keyframes tfx-rays-fadein { to { opacity:1; } }
+
+.tfx-ray {
+  position: absolute;
+  top: 0; left: 50%;
+  height: 100%;
+  width: 1px;
+  transform-origin: top center;
+  background: linear-gradient(to bottom, rgba(255,220,100,.22), transparent 75%);
+}
+
+/* Bloom overlay */
+.tfx-bloom {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 0%,
+    rgba(255,240,180,.14), transparent 70%);
+  animation: tfx-bloom-pulse 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tfx-bloom-pulse {
+  0%,100% { opacity:.6; }
+  50%      { opacity:1; }
+}
+
+/* Halo pulse ring */
+.tfx-halo-ring {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: min(400px,80vw);
+  height: 4px;
+  background: radial-gradient(ellipse 100% 100% at 50% 0%,
+    rgba(255,220,100,.5), transparent);
+  pointer-events: none;
+  z-index: 1;
+  animation: tfx-halo-pulse 4s ease-in-out infinite;
+}
+@keyframes tfx-halo-pulse {
+  0%,100% { opacity:.3; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity:.8; transform: translateX(-50%) scaleX(1.1); }
+}
+
+/* Drifting cloud blobs */
+.tfx-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  filter: blur(40px);
+  pointer-events: none;
+  animation: tfx-cloud-drift var(--cdur,25s) ease-in-out infinite alternate;
+}
+@keyframes tfx-cloud-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--cdir,30px)); }
+}
+
+
+/* ── FOREST extra FX ─────────────────────────────────────── */
+
+/* Animated fog canvas */
+.tfx-forest-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.4;
+}
+
+/* Falling leaf element */
+.tfx-leaf {
+  position: absolute;
+  top: -30px;
+  font-size: var(--lsz, 14px);
+  pointer-events: none;
+  opacity: 0;
+  animation:
+    tfx-leaf-fall var(--ldur, 7s) linear var(--ldelay, 0s) infinite,
+    tfx-leaf-sway var(--lswdur, 3s) ease-in-out var(--ldelay, 0s) infinite alternate;
+}
+@keyframes tfx-leaf-fall {
+  0%   { top: -30px; opacity: 0; }
+  5%   { opacity: .8; }
+  90%  { opacity: .6; }
+  100% { top: 110vh; opacity: 0; }
+}
+@keyframes tfx-leaf-sway {
+  from { transform: rotate(-15deg) translateX(0); }
+  to   { transform: rotate(15deg)  translateX(40px); }
+}
+
+/* Firefly dot */
+.tfx-firefly {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(200,255,100,.9);
+  box-shadow: 0 0 6px rgba(200,255,100,.8), 0 0 14px rgba(160,255,80,.4);
+  pointer-events: none;
+  animation:
+    tfx-firefly-move var(--ffdur, 8s) ease-in-out var(--ffdelay,0s) infinite,
+    tfx-firefly-blink var(--ffblink, 1.5s) ease-in-out var(--ffdelay,0s) infinite;
+}
+@keyframes tfx-firefly-move {
+  0%,100% { transform: translate(0,0); }
+  25%      { transform: translate(30px,-20px); }
+  50%      { transform: translate(-20px,-40px); }
+  75%      { transform: translate(10px,-15px); }
+}
+@keyframes tfx-firefly-blink {
+  0%,100% { opacity:.9; }
+  50%      { opacity:.1; }
+}
+
+/* Ambient canopy sway overlay */
+.tfx-canopy {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 40% at 50% 0%,
+    rgba(20,60,10,.2), transparent 70%);
+  animation: tfx-canopy-sway 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes tfx-canopy-sway {
+  from { transform: translateX(-2%); }
+  to   { transform: translateX(2%); }
+}
+
+/* Depth layer vignette for forest */
+.tfx-forest-depth {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(0,20,0,.5), transparent 60%),
+    radial-gradient(ellipse 100% 30% at 50% 0%,  rgba(0,15,0,.35), transparent 55%);
+  pointer-events: none;
+}
+
+
+/* ── SPACE extra FX ──────────────────────────────────────── */
+
+/* Star canvas */
+.tfx-space-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+}
+
+/* Nebula drift layers */
+.tfx-nebula {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  mix-blend-mode: screen;
+  animation: tfx-nebula-drift var(--ndur, 30s) ease-in-out infinite alternate;
+}
+@keyframes tfx-nebula-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(var(--ndx,20px), var(--ndy,10px)) scale(1.05); }
+}
+
+/* Cosmic glow at top */
+.tfx-cosmic-glow {
+  position: absolute;
+  top: -5%; left: 50%;
+  transform: translateX(-50%);
+  width: 60vw; height: 30vh;
+  background: radial-gradient(ellipse 100% 100% at 50% 0%,
+    rgba(120,80,255,.12), transparent 80%);
+  pointer-events: none;
+  animation: tfx-cosmic-pulse 6s ease-in-out infinite;
+}
+@keyframes tfx-cosmic-pulse {
+  0%,100% { opacity:.5; }
+  50%      { opacity:1; }
+}
+
+/* Cursor gravity field — JS adds class when cursor near star */
+.tfx-star-pulled {
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+
+/* ── Y2K extra FX ────────────────────────────────────────── */
+
+/* CRT scanline overlay */
+.tfx-crt-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,.07) 3px,
+    rgba(0,0,0,.07) 4px
+  );
+}
+
+/* VHS glitch slice */
+.tfx-vhs-slice {
+  position: absolute;
+  left: 0; right: 0;
+  height: var(--slh, 4px);
+  background: rgba(255,0,255,.25);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: tfx-vhs-shift 0.35s ease forwards;
+}
+@keyframes tfx-vhs-shift {
+  0%  { transform: translateX(0)    scaleY(1); opacity:.8; }
+  40% { transform: translateX(-30px) scaleY(2); opacity:.5; }
+  100%{ transform: translateX(50px) scaleY(.5); opacity:0; }
+}
+
+/* Chromatic aberration on text */
+body.theme-y2k.tfx-chroma h1,
+body.theme-y2k.tfx-chroma .section-title {
+  text-shadow:
+    -2px 0 rgba(255,0,0,.5),
+     2px 0 rgba(0,0,255,.5);
+  transition: text-shadow 0.2s;
+}
+
+/* Pixel noise canvas */
+.tfx-pixel-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.04;
+  image-rendering: pixelated;
+}
+
+/* Fake Windows popup */
+.tfx-win-popup {
+  position: fixed;
+  background: #c0c0c0;
+  border: 2px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  box-shadow: 2px 2px 0 #000;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #000;
+  z-index: 99990;
+  min-width: 180px;
+  max-width: min(280px, 85vw);
+  pointer-events: auto;
+  animation: tfx-popup-in 0.15s ease forwards;
+}
+@keyframes tfx-popup-in {
+  from { transform: scale(.9); opacity:0; }
+  to   { transform: scale(1);  opacity:1; }
+}
+.tfx-win-titlebar {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: #fff;
+  padding: 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: move;
+}
+.tfx-win-close {
+  background: #c0c0c0;
+  border: 1px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  width: 16px; height: 14px;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  color: #000;
+  font-family: monospace;
+}
+.tfx-win-body {
+  padding: 10px 12px 12px;
+  line-height: 1.5;
+}
+.tfx-win-ok {
+  display: block;
+  margin: 6px auto 0;
+  background: #c0c0c0;
+  border: 2px solid #808080;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  box-shadow: 1px 1px 0 #000;
+  padding: 2px 18px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
+.tfx-win-ok:active {
+  border-top-color: #808080;
+  border-left-color: #808080;
+  border-bottom-color: #fff;
+  border-right-color: #fff;
+}
+
+/* Low-FPS retro step effect */
+body.theme-y2k .theme-fx-layer {
+  image-rendering: pixelated;
+}

@@ -1,0 +1,309 @@
+/* ============================================================
+   THEME FX — DUAL LAYER SYSTEM
+   Replaces: .theme-fx-layer single-layer architecture
+   File: theme-fx-dual-layer.css
+   Load AFTER style.css, AFTER theme-fx-layer-fix.css,
+         AFTER theme-system-v2.css
+   ============================================================ */
+
+
+/* ============================================================
+   0. DELETE / NULLIFY OLD LAYER
+   ============================================================ */
+
+/* Nuke the old single-layer rule entirely */
+.theme-fx-layer {
+  display: none !important;
+}
+
+
+/* ============================================================
+   1. Z-INDEX MASTER HIERARCHY
+   ============================================================
+
+   -1   → body background
+    0   → .bg page gradient
+    5   → #theme-bg-fx  (stars, nebula, sky, god-rays, lava glow, fog)
+   10   → header, main, footer  (content)
+      └─ inside main: sticky-tabs z:40, cards z:auto
+   20   → #theme-fg-fx  (near-cam particles, mist over cards)
+   50   → .nat-tabs-nav sticky
+  100   → .mu-toggle FAB
+  150   → body > .tfx-crossing  (meteors, feathers, embers, streaks)
+  999   → toasts, confirms
+ 9999   → modals, cutscenes, loader
+============================================================ */
+
+
+/* ============================================================
+   2. BACKGROUND FX LAYER  z:5
+   ============================================================ */
+
+#theme-bg-fx {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+  /* no transform, no filter, no backdrop-filter — clean stacking */
+}
+
+#theme-bg-fx canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   3. FOREGROUND FX LAYER  z:20
+   ============================================================ */
+
+#theme-fg-fx {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  overflow: hidden;
+}
+
+#theme-fg-fx canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+
+/* ============================================================
+   4. CROSSING PARTICLES  z:150  (body direct children)
+   ============================================================ */
+
+.tfx-crossing {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 150 !important;
+  /* no parent transform, no overflow clipping — free to cross everything */
+}
+
+
+/* ============================================================
+   5. CONTENT LAYER — override old z:2 to z:10
+   ============================================================ */
+
+header,
+main,
+footer {
+  position: relative;
+  z-index: 10;
+}
+
+/* Tabs stay above fg layer */
+.sticky-tab-section,
+.nat-tabs-nav {
+  z-index: 50;
+}
+
+/* FAB above fg */
+.mu-toggle,
+.mu-body {
+  z-index: 100;
+}
+
+/* Modals/cutscenes always win */
+.cs-overlay,
+.modal,
+.modal-overlay,
+#loader {
+  z-index: 9999 !important;
+}
+
+.confirm-popup { z-index: 10001 !important; }
+
+
+/* ============================================================
+   6. HEADER — atmosphere inheritance
+   ============================================================ */
+
+/* Header must NOT use transform (breaks fixed children stacking) */
+/* Remove translateY from fadeDown by overriding fill-mode end state */
+header {
+  animation: none !important; /* kill old fadeDown which creates stacking ctx */
+  opacity: 1 !important;
+  /* Semi-transparent so bg-fx bleeds through */
+  background: var(--t-header-bg, rgba(255,255,255,0.70)) !important;
+  backdrop-filter: blur(var(--t-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--t-blur, 12px));
+  /* backdrop-filter is safe here — header is already a stacking ctx via z:10 */
+  border-bottom: 1px solid var(--t-border, rgba(255,255,255,0.5));
+  overflow: visible; /* allow crossing particles to pass over header edge */
+}
+
+/* Re-add fade-in without transform (opacity-only = no stacking ctx created) */
+@keyframes headerFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+header {
+  animation: headerFadeIn 0.6s ease forwards !important;
+}
+
+/* Header orbs — use opacity only (no transform = no stacking ctx) */
+header::after {
+  animation: headerOrbs 10s ease-in-out infinite alternate;
+}
+@keyframes headerOrbs {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1.0; }
+  100% { opacity: 0.7; }
+}
+
+
+/* ============================================================
+   7. SECTIONS — kill transform in fadeUp end state
+   ============================================================ */
+
+/* fadeUp creates a persistent stacking ctx via transform:translateY(0).
+   Override: use opacity-only version for all content sections. */
+.facts-section,
+.gallery-section,
+.react-section,
+.message-section,
+.achievements-section,
+.hobbies-section,
+.premium-section,
+[class*="-section"] {
+  animation: sectionFadeIn 0.7s ease both !important;
+  will-change: auto; /* don't promote to compositing layer after anim */
+}
+
+@keyframes sectionFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+
+/* ============================================================
+   8. AVATAR FRAME CLIPPING FIX
+   ============================================================ */
+
+/* Wrap must never clip frame layers that bleed outside */
+.prof-pfp-wrap {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Host setup already done in avatar-frames.css,
+   but ensure parent chain doesn't re-clip */
+.prof-pfp.nat-frame-host {
+  overflow: visible !important;
+  isolation: isolate;
+}
+
+/* Image stable sizing — prevent unconstrained height on load */
+.prof-pfp img,
+.prof-pfp-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Message bubble must NOT clip avatar frame bleeds */
+.message-bubble {
+  overflow: visible !important; /* was overflow:hidden — clipped chat avatars */
+}
+
+/* Re-apply bubble clip via clip-path instead (doesn't create stacking ctx,
+   doesn't clip positioned children outside flow) */
+.message-bubble {
+  clip-path: none; /* rely on border-radius only */
+}
+
+
+/* ============================================================
+   9. THEME-SPECIFIC BG-FX CSS HELPERS
+   ============================================================ */
+
+/* ── Space ── */
+body[data-theme="space"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 140% 60% at 50% 100%, rgba(40,0,80,0.7) 0%, transparent 70%),
+    radial-gradient(ellipse 80%  50% at 20%  10%, rgba(80,20,160,0.3) 0%, transparent 60%),
+    linear-gradient(180deg, #000008 0%, #050018 60%, #0a0030 100%);
+}
+
+/* ── Cyber ── */
+body[data-theme="cyber"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 120% 50% at 50% 110%, rgba(0,80,30,0.6) 0%, transparent 65%),
+    radial-gradient(ellipse 60%  30% at 50% -5%,  rgba(0,255,80,0.05) 0%, transparent 70%),
+    linear-gradient(180deg, #000c02 0%, #001a06 60%, #002210 100%);
+}
+
+/* ── Hell ── */
+body[data-theme="hell"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 120%, rgba(200,20,0,0.8) 0%, transparent 60%),
+    radial-gradient(ellipse 80%  40% at 50%   0%, rgba(80,0,0,0.5)  0%, transparent 70%),
+    linear-gradient(180deg, #0a0000 0%, #1a0000 50%, #2a0500 100%);
+}
+
+/* ── Heaven ── */
+body[data-theme="heaven"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 120% 50% at 50%  -5%, rgba(255,240,180,0.55) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(200,220,255,0.35) 0%, transparent 60%),
+    linear-gradient(180deg, #e8f4ff 0%, #c8e0ff 40%, #d8eaff 100%);
+}
+
+/* ── Forest ── */
+body[data-theme="forest"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 120% 50% at 50%  -5%, rgba(20,80,0,0.5)  0%, transparent 65%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(0,40,10,0.7)  0%, transparent 60%),
+    linear-gradient(180deg, #000a00 0%, #001a04 50%, #00280a 100%);
+}
+
+/* ── Y2K ── */
+body[data-theme="y2k"] #theme-bg-fx {
+  background:
+    radial-gradient(ellipse 120% 50% at 50%  -5%, rgba(200,0,255,0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(0,200,255,0.10) 0%, transparent 60%),
+    linear-gradient(180deg, #0a0010 0%, #100020 50%, #060010 100%);
+}
+
+
+/* ============================================================
+  10. MOBILE SAFETY
+   ============================================================ */
+
+@media (max-width: 600px) {
+  #theme-bg-fx,
+  #theme-fg-fx {
+    /* Keep fixed on mobile but don't cause scroll issues */
+    will-change: auto;
+  }
+
+  .tfx-crossing {
+    /* Reduce crossing count handled in JS — CSS just ensures no clipping */
+    contain: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #theme-bg-fx,
+  #theme-fg-fx,
+  .tfx-crossing {
+    display: none !important;
+  }
+  header {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
